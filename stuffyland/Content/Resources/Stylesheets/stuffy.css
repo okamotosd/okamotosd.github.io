@@ -1,5 +1,6 @@
-@namespace MadCap url(http://www.madcapsoftware.com/Schemas/MadCap.xsd);
 /*<meta />*/
+
+@namespace MadCap url(http://www.madcapsoftware.com/Schemas/MadCap.xsd);
 
 body
 {
@@ -330,5 +331,13 @@ div.toolbar
 	margin-left: auto;
 	margin-right: auto;
 	width: 64px;
+}
+
+@media only screen and (max-width: 1279px)
+{
+	img
+	{
+		max-width: 100%;
+	}
 }
 

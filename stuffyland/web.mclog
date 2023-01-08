@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<MadCapLog Protocol="2" Description="MadCap Flare 2022 r2 Generated web.fltar" Date="2023-01-08T15:21:58.0892897-08:00">
+<MadCapLog Protocol="2" Description="MadCap Flare 2022 r2 Generated web.fltar" Date="2023-01-08T15:42:34.2955292-08:00">
     <Messages>Compiling target web...
 Removing previously generated content...
 Loading skin info...
@@ -305,7 +305,7 @@ Generated Skins\Default\Stylesheets\Topic.micro-content.css
 Generated Default.htm
 Saving result set...
 Ignored Compiler Warnings: 442
-Output generated in 43 second(s).
+Output generated in 20 second(s).
 
 Done
 Saving log to "C:\Users\lorio\OneDrive\Cloudforge\Stuffyland_news\Output\Lori\web\web.mclog"

@@ -1,0 +1,334 @@
+@namespace MadCap url(http://www.madcapsoftware.com/Schemas/MadCap.xsd);
+/*<meta />*/
+
+body
+{
+	font-family: Arial;
+	max-width: 60em;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+h1
+{
+	font-weight: bold;
+	font-size: 24.0pt;
+	color: #4169e1;
+	font-family: 'Comic Sans MS';
+	text-align: center;
+}
+
+h2
+{
+	font-weight: bold;
+	font-size: 18.0pt;
+}
+
+h3
+{
+	font-weight: bold;
+	font-size: 14.0pt;
+}
+
+h4
+{
+	font-weight: bold;
+	font-size: 12.0pt;
+}
+
+h5
+{
+	font-weight: bold;
+	font-size: 10.0pt;
+}
+
+h6
+{
+	font-weight: bold;
+	font-size: 8.0pt;
+}
+
+p
+{
+	margin-top: 0pt;
+	margin-bottom: 0pt;
+	font-size: 16pt;
+	padding-bottom: 8pt;
+	text-align: left;
+}
+
+ol,
+ul
+{
+	font-size: 16pt;
+	margin-top: 0px;
+	margin-bottom: 0px;
+	padding-bottom: 8pt;
+	text-align: left;
+}
+
+img
+{
+	border: none;
+	height: auto;
+	max-width: 768px;
+}
+
+a.Popup
+{
+	
+}
+
+MadCap|expandingHead
+{
+	font-style: italic;
+	font-weight: normal;
+	cursor: hand;
+	text-decoration: none;
+	color: #006600;
+}
+
+MadCap|expandingBody
+{
+	color: #777777;
+	font-style: italic;
+}
+
+MadCap|dropDownHotspot
+{
+	cursor: hand;
+	font-style: italic;
+	text-decoration: none;
+	color: #006600;
+}
+
+MadCap|breadcrumbsProxy
+{
+	font-weight: bold;
+	font-size: 1.5em;
+	font-family: 'Comic Sans MS';
+	text-align: center;
+	mc-breadcrumbs-prefix: ' ';
+	mc-breadcrumbs-count: 2;
+	color: #4169e1;
+	mc-breadcrumbs-divider: ' : ';
+}
+
+a.tab
+{
+	
+}
+
+a.tab:link
+{
+	color: #ffffff;
+	text-decoration: none;
+	background-color: #4169e1;
+}
+
+a.tab:visited
+{
+	color: #ffffff;
+	text-decoration: none;
+	background-color: #4169e1;
+}
+
+a.tab:hover
+{
+	color: #4169e1;
+	background-color: #ffffff;
+	text-decoration: none;
+}
+
+a.tab:active
+{
+	text-decoration: none;
+	background-color: #4169e1;
+	color: #ffffff;
+}
+
+html.nomaster
+{
+	mc-master-page: url('../MasterPages/Home.flmsp');
+}
+
+MadCap|topicToolbarProxy
+{
+	
+}
+
+body.center
+{
+	text-align: center;
+}
+
+p.heading
+{
+	margin-top: 0pt;
+	margin-bottom: 0pt;
+	font-size: 20pt;
+	text-align: center;
+	padding-bottom: 10pt;
+	font-weight: bold;
+}
+
+div.form
+{
+	width: 800px;
+	border: solid 2px #000000;
+	padding-bottom: 8pt;
+	margin-left: auto;
+	margin-right: auto;
+	page-break-inside: avoid;
+}
+
+p.center
+{
+	text-align: center;
+}
+
+p.uppercase
+{
+	text-transform: capitalize;
+	text-align: center;
+}
+
+div.noprint
+{
+	
+}
+
+p.rotate
+{
+	height: 100px;
+	font-size: .75em;
+	text-align: center;
+	padding-top: 70px;
+	vertical-align: middle;
+	-webkit-transform: rotate(-90deg);
+	-moz-transform: rotate(-90deg);
+	-ms-transform: rotate(-90deg);
+	-o-transform: rotate(-90deg);
+	transform: rotate(-90deg);
+}
+
+@media print
+{
+	img
+	{
+		max-width: 7.5in;
+	}
+
+	div.noprint
+	{
+		display: none;
+	}
+}
+
+p.copyright
+{
+	font-size: 12pt;
+	text-align: center;
+}
+
+.cd-container
+{
+	margin: 2em auto;
+}
+
+.cd-container::after
+{
+	/* clearfix */
+	content: '';
+	display: table;
+	clear: both;
+}
+
+.cd-top
+{
+	display: inline-block;
+	height: 40px;
+	width: 40px;
+	position: fixed;
+	bottom: 40px;
+	right: 10px;
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+	/* image replacement properties */
+	overflow: hidden;
+	text-indent: 100%;
+	white-space: nowrap;
+	background: #35518f url(../Images/cd-top-arrow.svg) no-repeat center 50%;
+	visibility: hidden;
+	opacity: 0;
+	-webkit-transition: opacity .3s 0s, visibility 0s .3s;
+	-moz-transition: opacity .3s 0s, visibility 0s .3s;
+	transition: opacity .3s 0s, visibility 0s .3s;
+}
+
+.cd-top.cd-is-visible,
+.cd-top.cd-fade-out,
+.no-touch .cd-top:hover
+{
+	-webkit-transition: opacity .3s 0s, visibility 0s 0s;
+	-moz-transition: opacity .3s 0s, visibility 0s 0s;
+	transition: opacity .3s 0s, visibility 0s 0s;
+}
+
+.cd-top.cd-is-visible
+{
+	/* the button becomes visible */
+	visibility: visible;
+	opacity: 1;
+}
+
+.cd-top.cd-fade-out
+{
+	/* if the user keeps scrolling down, the button is out of focus and becomes less visible */
+	opacity: .5;
+}
+
+.no-touch .cd-top:hover
+{
+	background-color: #35518f;
+	opacity: 1;
+}
+
+@media only screen and (min-width: 768px)
+{
+	.cd-top
+	{
+		right: 20px;
+		bottom: 40px;
+	}
+}
+
+@media only screen and (min-width: 1024px)
+{
+	.cd-top
+	{
+		height: 60px;
+		width: 60px;
+		right: 30px;
+		bottom: 40px;
+	}
+}
+
+div.bottomright
+{
+	position: fixed;
+	bottom: 0;
+	right: 0;
+}
+
+html.stuffy
+{
+	mc-master-page: url('../MasterPages/Master.flmsp');
+}
+
+div.toolbar
+{
+	margin-left: auto;
+	margin-right: auto;
+	width: 64px;
+}
+

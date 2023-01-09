@@ -4,7 +4,7 @@
 
 body
 {
-	font-family: Arial;
+	font-family: Calibri;
 	max-width: 60em;
 	margin-left: auto;
 	margin-right: auto;
@@ -15,7 +15,7 @@ h1
 	font-weight: bold;
 	font-size: 24.0pt;
 	color: #4169e1;
-	font-family: 'Comic Sans MS';
+	font-family: 'Calibri';
 	text-align: center;
 }
 
@@ -107,7 +107,6 @@ MadCap|breadcrumbsProxy
 {
 	font-weight: bold;
 	font-size: 1.5em;
-	font-family: 'Comic Sans MS';
 	text-align: center;
 	mc-breadcrumbs-prefix: ' ';
 	mc-breadcrumbs-count: 2;

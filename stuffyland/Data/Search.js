@@ -1,1 +1,1 @@
-define({r:0.5,st:'Stem',n:1,t:[0],m:[],u:['../Content/Volume1/comics.htm'],s:['$0'],p:[['$0',69],['change',36],['page',64],['wish',73]]});
+define({r:0.5,st:'Stem',n:1,t:[0],m:[],u:['../Content/Volume1/comics.htm'],s:['$0'],p:[['$0',69],['change',36],['page',64],['wish',79]]});

@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Ledger — Portfolio Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<style>
+
+:root{
+  --ink:#12241f;
+  --ink-soft:#264a3f;
+  --parchment:#faf6ec;
+  --parchment-dim:#f1ead8;
+  --card:#fffdf8;
+  --line:#e4dcc6;
+  --brass:#b8862f;
+  --brass-soft:#e7cf9c;
+  --gain:#3f7c58;
+  --gain-bg:#e7f1e9;
+  --loss:#a8452f;
+  --loss-bg:#f6e6e0;
+  --text:#1c2b26;
+  --text-dim:#5c6a63;
+  --shadow: 0 1px 2px rgba(18,36,31,0.06), 0 6px 20px rgba(18,36,31,0.06);
+  --radius: 14px;
+  font-family:'IBM Plex Sans',sans-serif;
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;background:var(--parchment);color:var(--text);}
+body{padding-bottom:90px; -webkit-font-smoothing:antialiased;}
+h1,h2,h3{font-family:'Fraunces',serif;margin:0;font-weight:600;}
+a{color:var(--brass);}
+
+.ticker-wrap{
+  background:var(--ink); overflow:hidden; white-space:nowrap; height:34px;
+  display:flex; align-items:center; border-bottom:1px solid var(--ink-soft);
+}
+.ticker-track{
+  display:inline-flex; gap:28px; padding-left:100%;
+  animation: scroll-left 60s linear infinite;
+  font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--brass-soft);
+}
+.ticker-wrap:hover .ticker-track{ animation-play-state: paused; }
+@keyframes scroll-left{ from{ transform:translateX(0);} to{ transform:translateX(-100%);} }
+.tick-item{display:inline-flex; gap:6px; align-items:center;}
+.tick-up{color:#9bd6ab;}
+.tick-down{color:#e79a86;}
+
+.app-header{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 18px; background:var(--ink); color:var(--parchment);
+}
+.brand{display:flex; align-items:center; gap:10px;}
+.brand-mark{
+  font-family:'Fraunces',serif; font-size:26px; color:var(--brass-soft);
+  width:36px;height:36px;border:1.5px solid var(--brass-soft);border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+}
+.brand-name{font-family:'Fraunces',serif; font-size:19px; line-height:1.1; font-weight:600;}
+.brand-sub{font-size:11px; color:#b9c9c0; letter-spacing:.04em; text-transform:uppercase;}
+.header-actions{display:flex; gap:6px;}
+.icon-btn{
+  background:transparent;border:1px solid rgba(250,246,236,0.25); color:var(--parchment);
+  width:36px;height:36px;border-radius:50%; font-size:16px; cursor:pointer;
+}
+.icon-btn:active{background:rgba(250,246,236,0.15);}
+
+main{max-width:760px; margin:0 auto; padding:16px;}
+.card{
+  background:var(--card); border:1px solid var(--line); border-radius:var(--radius);
+  box-shadow:var(--shadow); padding:18px; margin-bottom:16px;
+}
+.card-head{display:flex; align-items:baseline; justify-content:space-between; margin-bottom:12px; gap:8px; flex-wrap:wrap;}
+.hint{font-size:12px; color:var(--text-dim);}
+
+.hero{background:linear-gradient(155deg, #16302a, #12241f); color:var(--parchment); border:none;}
+.hero-top{display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;}
+.hero-label{font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:#a9bdb3;}
+.hero-updated{font-size:11px; color:#8fa89c; font-family:'IBM Plex Mono',monospace;}
+.hero-value{font-family:'Fraunces',serif; font-size:44px; font-weight:600; line-height:1.05; margin:4px 0 14px; letter-spacing:-0.01em;}
+.hero-row{display:flex; gap:22px; flex-wrap:wrap;}
+.hero-stat{display:flex; flex-direction:column; gap:2px;}
+.hero-stat-label{font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:#8fa89c;}
+.hero-stat-value{font-family:'IBM Plex Mono',monospace; font-size:15px; font-weight:600;}
+.pos{color:#9bd6ab !important;} .neg{color:#e79a86 !important;}
+
+.tabs{display:flex; gap:8px; overflow-x:auto; padding:2px 2px 10px; margin-bottom:4px;}
+.tab{
+  flex:0 0 auto; background:var(--card); border:1px solid var(--line); color:var(--text-dim);
+  padding:8px 14px; border-radius:999px; font-size:13px; font-weight:600; cursor:pointer;
+  font-family:'IBM Plex Sans',sans-serif;
+}
+.tab.active{background:var(--ink); color:var(--parchment); border-color:var(--ink);}
+
+.stat-strip{display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:16px;}
+.stat-box{
+  background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px 14px;
+}
+.stat-box .l{font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--text-dim); margin-bottom:4px;}
+.stat-box .v{font-family:'IBM Plex Mono',monospace; font-size:17px; font-weight:600;}
+
+.grid-2{display:grid; grid-template-columns:1fr 1fr; gap:16px;}
+@media(max-width:640px){ .grid-2{grid-template-columns:1fr;} .stat-strip{grid-template-columns:repeat(2,1fr);} }
+
+.table-wrap{overflow-x:auto;}
+table{width:100%; border-collapse:collapse; font-size:13px;}
+th{
+  text-align:right; font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; color:var(--text-dim);
+  padding:6px 8px; border-bottom:1.5px solid var(--line); white-space:nowrap;
+}
+th:first-child, td:first-child{text-align:left;}
+td{padding:9px 8px; border-bottom:1px solid var(--parchment-dim); text-align:right; font-family:'IBM Plex Mono',monospace; white-space:nowrap;}
+td.sym{font-family:'IBM Plex Sans',sans-serif; font-weight:600; text-align:left;}
+tr:last-child td{border-bottom:none;}
+.chip{display:inline-block; padding:2px 8px; border-radius:999px; font-size:11px; font-weight:600; font-family:'IBM Plex Sans',sans-serif;}
+.chip-buy{background:var(--gain-bg); color:var(--gain);}
+.chip-sell{background:var(--loss-bg); color:var(--loss);}
+.chip-cash{background:#e9e3d0; color:#6b5f3f;}
+.row-edit{cursor:pointer;}
+.row-edit:active{background:var(--parchment-dim);}
+
+.txn-filters{display:flex; gap:8px; margin-bottom:10px;}
+.txn-filters input, .txn-filters select{
+  flex:1; padding:9px 10px; border:1px solid var(--line); border-radius:8px; background:var(--parchment); font-size:13px; font-family:'IBM Plex Sans',sans-serif;
+}
+
+.btn-text{
+  width:100%; background:transparent; border:1px dashed var(--line); color:var(--text-dim);
+  padding:9px; border-radius:8px; margin-top:10px; cursor:pointer; font-size:13px; font-family:'IBM Plex Sans',sans-serif;
+}
+
+.fab{
+  position:fixed; right:20px; bottom:24px; width:56px; height:56px; border-radius:50%;
+  background:var(--brass); color:var(--ink); border:none; font-size:28px; box-shadow:0 6px 18px rgba(184,134,47,0.45);
+  cursor:pointer; z-index:40; line-height:0;
+}
+.fab:active{transform:scale(0.96);}
+
+.modal-overlay{
+  position:fixed; inset:0; background:rgba(18,36,31,0.5); display:none; align-items:flex-end; justify-content:center; z-index:100;
+}
+.modal-overlay.open{display:flex;}
+.modal{
+  background:var(--parchment); width:100%; max-width:480px; border-radius:18px 18px 0 0; padding:20px;
+  max-height:88vh; overflow-y:auto; animation: slide-up .22s ease-out;
+}
+@media(min-width:640px){ .modal-overlay{align-items:center;} .modal{border-radius:16px;} }
+@keyframes slide-up{ from{transform:translateY(24px); opacity:0;} to{transform:translateY(0); opacity:1;} }
+.modal-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;}
+.modal-head .icon-btn{background:var(--parchment-dim); color:var(--text); border-color:var(--line);}
+#txnForm label, .settings-body label{
+  display:block; font-size:12px; font-weight:600; color:var(--text-dim); margin-bottom:12px; text-transform:uppercase; letter-spacing:.03em;
+}
+#txnForm input, #txnForm select, .settings-body input{
+  display:block; width:100%; margin-top:5px; padding:11px 12px; border:1px solid var(--line); border-radius:9px;
+  background:var(--card); font-size:15px; font-family:'IBM Plex Sans',sans-serif; color:var(--text); text-transform:none;
+}
+.modal-actions{display:flex; gap:10px; margin-top:6px;}
+.btn-primary{
+  flex:1; background:var(--ink); color:var(--parchment); border:none; padding:13px; border-radius:9px; font-size:14px; font-weight:600; cursor:pointer;
+}
+.btn-secondary{
+  flex:1; background:transparent; color:var(--loss); border:1px solid var(--loss); padding:13px; border-radius:9px; font-size:14px; font-weight:600; cursor:pointer;
+}
+.settings-body hr{border:none; border-top:1px solid var(--line); margin:18px 0;}
+
+.toast{
+  position:fixed; bottom:100px; left:50%; transform:translateX(-50%) translateY(20px); opacity:0;
+  background:var(--ink); color:var(--parchment); padding:10px 18px; border-radius:999px; font-size:13px;
+  transition:all .25s ease; pointer-events:none; z-index:200; white-space:nowrap;
+}
+.toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+</style>
+</head>
+<body>
+
+<div id="tickerTape" class="ticker-wrap"><div class="ticker-track" id="tickerTrack"></div></div>
+
+<header class="app-header">
+  <div class="brand">
+    <span class="brand-mark">§</span>
+    <div>
+      <div class="brand-name">Ledger</div>
+      <div class="brand-sub">Portfolio Tracker</div>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button class="icon-btn" id="refreshBtn" title="Refresh prices">⟳</button>
+    <button class="icon-btn" id="settingsBtn" title="Settings">⚙</button>
+  </div>
+</header>
+
+<main>
+
+  <section class="hero card">
+    <div class="hero-top">
+      <div class="hero-label">Total Portfolio Value</div>
+      <div class="hero-updated" id="lastUpdated">Not yet priced</div>
+    </div>
+    <div class="hero-value" id="heroValue">$0.00</div>
+    <div class="hero-row">
+      <div class="hero-stat">
+        <span class="hero-stat-label">Gain / Loss</span>
+        <span class="hero-stat-value" id="heroGain">$0.00</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-label">Return</span>
+        <span class="hero-stat-value" id="heroReturn">0.0%</span>
+      </div>
+      <div class="hero-stat">
+        <span class="hero-stat-label">Cost Basis</span>
+        <span class="hero-stat-value" id="heroCost">$0.00</span>
+      </div>
+    </div>
+  </section>
+
+  <nav class="tabs" id="accountTabs">
+    <button class="tab active" data-account="All">All</button>
+  </nav>
+
+  <section class="stat-strip" id="statStrip"></section>
+
+  <section class="card chart-card">
+    <div class="card-head">
+      <h2>Value History</h2>
+      <span class="hint">Tracked from each visit — builds over time</span>
+    </div>
+    <canvas id="historyChart" height="180"></canvas>
+  </section>
+
+  <div class="grid-2">
+    <section class="card chart-card">
+      <div class="card-head"><h2>Allocation</h2></div>
+      <canvas id="allocChart" height="220"></canvas>
+    </section>
+    <section class="card chart-card">
+      <div class="card-head"><h2>By Account</h2></div>
+      <canvas id="acctChart" height="220"></canvas>
+    </section>
+  </div>
+
+  <section class="card chart-card">
+    <div class="card-head"><h2>Top Holdings</h2></div>
+    <canvas id="holdingsChart" height="200"></canvas>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <h2>Holdings</h2>
+      <span class="hint" id="holdingsCount">0 positions</span>
+    </div>
+    <div class="table-wrap">
+      <table id="holdingsTable">
+        <thead>
+          <tr>
+            <th>Symbol</th><th>Qty</th><th>Price</th><th>Value</th><th>Cost</th><th>Gain/Loss</th><th>Return</th>
+          </tr>
+        </thead>
+        <tbody id="holdingsBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <h2>Transactions</h2>
+      <span class="hint" id="txnCount">0 entries</span>
+    </div>
+    <div class="txn-filters">
+      <input type="text" id="txnSearch" placeholder="Search symbol...">
+      <select id="txnTypeFilter">
+        <option value="All">All types</option>
+        <option>Buy</option><option>Sell</option><option>Deposit</option><option>Bonus</option>
+        <option>Dividend</option><option>Fees</option><option>Cash</option><option>Cash sweep payment</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table id="txnTable">
+        <thead>
+          <tr><th>Date</th><th>Account</th><th>Type</th><th>Symbol</th><th>Qty</th><th>Price</th><th>Amount</th><th></th></tr>
+        </thead>
+        <tbody id="txnBody"></tbody>
+      </table>
+    </div>
+    <button class="btn-text" id="loadMoreBtn">Show more</button>
+  </section>
+
+</main>
+
+<button class="fab" id="addTxnFab" title="Add transaction">+</button>
+
+<!-- Add/Edit Transaction Modal -->
+<div class="modal-overlay" id="txnModalOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="txnModalTitle">Add Transaction</h3>
+      <button class="icon-btn" id="txnModalClose">×</button>
+    </div>
+    <form id="txnForm">
+      <input type="hidden" id="txnId">
+      <label>Account
+        <select id="fAccount" required></select>
+      </label>
+      <label>Date
+        <input type="date" id="fDate" required>
+      </label>
+      <label>Type
+        <select id="fType" required>
+          <option>Buy</option><option>Sell</option><option>Deposit</option><option>Bonus</option>
+          <option>Dividend</option><option>Fees</option><option>Cash</option><option>Cash sweep payment</option>
+        </select>
+      </label>
+      <div id="tradeFields">
+        <label>Symbol
+          <input type="text" id="fSymbol" placeholder="e.g. VOO" style="text-transform:uppercase">
+        </label>
+        <label>Quantity
+          <input type="number" step="any" id="fQty">
+        </label>
+        <label>Price per unit
+          <input type="number" step="any" id="fPrice">
+        </label>
+      </div>
+      <div id="cashFields">
+        <label>Cash amount
+          <input type="number" step="any" id="fCash">
+        </label>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" id="deleteTxnBtn" style="display:none">Delete</button>
+        <button type="submit" class="btn-primary">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-overlay" id="settingsModalOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Settings</h3>
+      <button class="icon-btn" id="settingsModalClose">×</button>
+    </div>
+    <div class="settings-body">
+      <label>Twelve Data API key
+        <input type="text" id="apiKeyInput" placeholder="Paste your free API key">
+      </label>
+      <p class="hint">Live prices use <a href="https://twelvedata.com/pricing" target="_blank" rel="noopener">Twelve Data</a>'s free plan (800 requests/day). Sign up for a free key, paste it here — it's stored only on this device.</p>
+      <button class="btn-primary" id="saveApiKeyBtn">Save key</button>
+      <hr>
+      <h3 style="font-size:15px;margin-bottom:10px;">Sync across devices</h3>
+      <p class="hint" style="margin-top:0">Connect a Google Sheet so transactions you add on your phone also show up on your laptop. Requires a one-time Apps Script setup — see the setup guide.</p>
+      <label>Web App URL
+        <input type="text" id="sheetUrlInput" placeholder="https://script.google.com/macros/s/.../exec">
+      </label>
+      <label>Access token
+        <input type="text" id="sheetTokenInput" placeholder="the token you set in the script">
+      </label>
+      <button class="btn-primary" id="saveSheetBtn">Save & connect</button>
+      <div id="sheetSyncActions" style="display:none; margin-top:10px;">
+        <button class="btn-secondary" id="pushAllBtn" style="border-color:var(--brass); color:var(--brass); margin-bottom:8px;">Push all local transactions to sheet</button>
+        <p class="hint" style="margin-top:0">Run this once, right after connecting, to copy your current 470+ transactions into the sheet. After that, new changes sync automatically.</p>
+        <button class="btn-secondary" id="pullAllBtn" style="border-color:var(--ink-soft); color:var(--ink-soft);">Pull latest from sheet now</button>
+      </div>
+      <div id="sheetSyncStatus" class="hint" style="margin-top:8px;"></div>
+      <hr>
+      <button class="btn-secondary" id="resetDataBtn">Reset to original spreadsheet data</button>
+      <p class="hint">This clears any transactions you've added or edited on this device and restores the original 470-row import. Does not affect a connected Google Sheet.</p>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SEED_TXNS = [{"account":"LO Invest","date":"2024-02-09","type":"Deposit","symbol":null,"qty":null,"price":null,"total":null,"cash":10.0,"id":1},{"account":"LO Invest","date":"2024-02-15","type":"Buy","symbol":"SOFI","qty":1.19047,"price":8.4,"total":9.999948,"cash":null,"id":2},{"account":"LO Invest","date":"2024-02-23","type":"Bonus","symbol":null,"qty":null,"price":null,"total":null,"cash":5.0,"id":3},{"account":"LO Invest","date":"2024-02-26","type":"Buy","symbol":"SOFI","qty":0.61143,"price":8.1775,"total":4.999968825,"cash":null,"id":4},{"account":"LO Invest","date":"2024-03-05","type":"Buy","symbol":"SOFI","qty":1.289,"price":7.7579,"total":9.9999331,"cash":null,"id":5},{"account":"LO Invest","date":"2024-03-05","type":"Deposit","symbol":null,"qty":null,"price":null,"total":null,"cash":25.0,"id":6},{"account":"LO Invest","date":"2024-03-08","type":"Bonus","symbol":null,"qty":null,"price":null,"total":null,"cash":50.0,"id":7},{"account":"LO Invest","date":"2024-03-11","type":"Buy","symbol":"PHT","qty":6.66551,"price":7.5013,"total":49.99999016,"cash":null,"id":8},{"account":"LO Invest","date":"2024-03-15","type":"Buy","symbol":"SOFI","qty":2.15585,"price":6.9578,"total":14.99997313,"cash":null,"id":9},{"account":"LO Invest","date":"2024-03-29","type":"Dividend","symbol":"PHT","qty":null,"price":null,"total":null,"cash":0.37,"id":10},{"account":"LO Invest","date":"2024-05-01","type":"Dividend","symbol":"PHT","qty":null,"price":null,"total":null,"cash":0.37,"id":11},{"account":"LO Invest","date":"2024-06-01","type":"Dividend","symbol":"PHT","qty":null,"price":null,"total":null,"cash":0.37,"id":12},{"account":"LO Invest","date":"2024-06-24","type":"Bonus","symbol":null,"qty":null,"price":null,"total":null,"cash":50.0,"id":13},{"account":"LO Invest","date":"2024-06-26","type":"Buy","symbol":"SFY","qty":0.514964,"price":99.24950000000001,"total":51.10991952,"cash":null,"id":14},{"account":"LO Invest","date":"2024-06-29","type":"Dividend","symbol":"PHT","qty":null,"price":null,"total":null,"cash":0.37,"id":15},{"account":"LO Invest","date":"2024-08-01","type":"Dividend","symbol":"PHT","qty":null,"price":null,"total":null,"cash":0.37,"id":16},{"account":"LO Invest","date":"2024-08-31","type":"Dividend","symbol":"PHT","qty":null,"price":null,"total":null,"cash":0.37,"id":17},{"account":"LO Invest","date":"2024-10-01","type":"Dividend","symbol":"PHT","qty":null,"price":null,"total":null,"cash":0.37,"id":18},{"account":"LO Invest","date":"2024-11-01","type":"Dividend","symbol":"PHT","qty":null,"price":null,"total":null,"cash":0.37,"id":19},{"account":"LO Invest","date":"2024-11-30","type":"Dividend","symbol":"PHT","qty":null,"price":null,"total":null,"cash":0.37,"id":20},{"account":"LO Invest","date":"2024-12-02","type":"Sell","symbol":"PHT","qty":6.66551,"price":7.89,"total":52.5908739,"cash":null,"id":21},{"account":"LO Invest","date":"2024-12-02","type":"Buy","symbol":"VOO","qty":0.09883,"price":554.3425,"total":54.78566928,"cash":null,"id":22},{"account":"IRA","date":"2024-12-05","type":"Buy","symbol":"PRBLX","qty":1985.823,"price":68.15,"total":135333.8375,"cash":null,"id":23},{"account":"IRA","date":"2024-12-05","type":"Buy","symbol":"TIRTX","qty":557.203,"price":30.8,"total":17161.8524,"cash":null,"id":24},{"account":"IRA","date":"2024-12-05","type":"Buy","symbol":"WGROX","qty":383.665,"price":106.51,"total":40864.15915,"cash":null,"id":25},{"account":"IRA","date":"2024-12-05","type":"Buy","symbol":"WILNX","qty":3021.126,"price":20.36,"total":61510.12536,"cash":null,"id":26},{"account":"IRA","date":"2024-12-05","type":"Deposit","symbol":null,"qty":null,"price":null,"total":null,"cash":254869.97,"id":27},{"account":"IRA","date":"2024-12-10","type":"Dividend","symbol":"PRBLX","qty":null,"price":null,"total":null,"cash":11380.55,"id":28},{"account":"IRA","date":"2024-12-10","type":"Dividend","symbol":"WGROX","qty":null,"price":null,"total":null,"cash":982.19,"id":29},{"account":"LO Invest","date":"2024-12-13","type":"Bonus","symbol":null,"qty":null,"price":null,"total":null,"cash":50.0,"id":30},{"account":"IRA","date":"2024-12-14","type":"Deposit","symbol":null,"qty":null,"price":null,"total":null,"cash":82905.68,"id":31},{"account":"IRA","date":"2024-12-14","type":"Bonus","symbol":null,"qty":null,"price":null,"total":null,"cash":3177.78,"id":32},{"account":"IRA","date":"2024-12-17","type":"Cash sweep payment","symbol":null,"qty":null,"price":null,"total":null,"cash":0.02,"id":33},{"account":"LO Invest","date":"2024-12-19","type":"Buy","symbol":"NYSE:MCK","qty":0.08792,"price":568.68,"total":49.9983456,"cash":null,"id":34},{"account":"IRA","date":"2024-12-19","type":"Sell","symbol":"PRBLX","qty":1985.823,"price":59.57,"total":118295.4761,"cash":null,"id":35},{"account":"IRA","date":"2024-12-19","type":"Sell","symbol":"WGROX","qty":383.66,"price":90.641,"total":34775.32606,"cash":null,"id":36},{"account":"IRA","date":"2024-12-19","type":"Sell","symbol":"WILNX","qty":3021.12,"price":19.35,"total":58458.672,"cash":null,"id":37},{"account":"IRA","date":"2024-12-20","type":"Dividend","symbol":"TIRTX","qty":null,"price":null,"total":null,"cash":0.56,"id":38},{"account":"IRA","date":"2024-12-23","type":"Buy","symbol":"QQQM","qty":357.0,"price":213.91,"total":76365.87,"cash":null,"id":39},{"account":"IRA","date":"2024-12-23","type":"Buy","symbol":"VOO","qty":195.0,"price":543.38,"total":105959.1,"cash":null,"id":40},{"account":"IRA","date":"2024-12-23","type":"Buy","symbol":"VUG","qty":97.0,"price":418.33,"total":40578.01,"cash":null,"id":41},{"account":"IRA","date":"2024-12-24","type":"Buy","symbol":"TIRTX","qty":2978.905,"price":29.23,"total":87073.39315,"cash":null,"id":42},{"account":"LO Invest","date":"2024-12-27","type":"Dividend","symbol":"VOO","qty":null,"price":null,"total":null,"cash":0.17,"id":43},{"account":"LO Invest","date":"2025-01-01","type":"Dividend","symbol":"SFY","qty":null,"price":null,"total":null,"cash":0.28,"id":44},{"account":"LO Invest","date":"2025-01-06","type":"Buy","symbol":"NVDA","qty":0.36215,"price":151.3975,"total":54.82860463,"cash":null,"id":45},{"account":"LO Invest","date":"2025-01-06","type":"Sell","symbol":"VOO","qty":0.09878,"price":550.485,"total":54.3769083,"cash":null,"id":46},{"account":"IRA","date":"2025-01-08","type":"Bonus","symbol":null,"qty":null,"price":null,"total":null,"cash":750.0,"id":47},{"account":"IRA","date":"2025-01-17","type":"Cash sweep payment","symbol":null,"qty":null,"price":null,"total":null,"cash":0.44,"id":48},{"account":"IRA","date":"2025-01-29","type":"Bonus","symbol":null,"qty":null,"price":null,"total":null,"cash":829.0,"id":49},{"account":"IRA","date":"2025-02-19","type":"Cash sweep payment","symbol":null,"qty":null,"price":null,"total":null,"cash":0.01,"id":50},{"account":"IRA","date":"2025-02-20","type":"Buy","symbol":"NYSE:BIP","qty":47.8985,"price":32.975,"total":1579.453038,"cash":null,"id":51},{"account":"IRA","date":"2025-03-29","type":"Dividend","symbol":"QQQM","qty":null,"price":null,"total":null,"cash":113.39,"id":52},{"account":"IRA","date":"2025-04-01","type":"Dividend","symbol":"NYSE:BIP","qty":null,"price":null,"total":null,"cash":7.15,"id":53},{"account":"IRA","date":"2025-04-01","type":"Dividend","symbol":"VUG","qty":null,"price":null,"total":null,"cash":48.5,"id":54},{"account":"IRA","date":"2025-04-01","type":"Deposit","symbol":null,"qty":null,"price":null,"total":null,"cash":0.23,"id":55},{"account":"IRA","date":"2025-04-02","type":"Dividend","symbol":"NYSE:BIP","qty":null,"price":null,"total":null,"cash":3.23,"id":56},{"account":"IRA","date":"2025-04-02","type":"Dividend","symbol":"NYSE:BIP","qty":null,"price":null,"total":null,"cash":1.61,"id":57},{"account":"IRA","date":"2025-04-02","type":"Dividend","symbol":"NYSE:BIP","qty":null,"price":null,"total":null,"cash":8.38,"id":58},{"account":"LO Invest","date":"2025-04-02","type":"Dividend","symbol":"NYSE:MCK","qty":null,"price":null,"total":null,"cash":0.06,"id":59},{"account":"IRA","date":"2025-04-02","type":"Dividend","symbol":"VOO","qty":null,"price":null,"total":null,"cash":353.36,"id":60},{"account":"IRA","date":"2025-05-12","type":"Buy","symbol":"NYSE:MCK","qty":0.78773,"price":680.25,"total":535.8533325,"cash":null,"id":61},{"account":"LO Invest","date":"2025-06-26","type":"Sell","symbol":"SOFI","qty":5.24675,"price":16.355,"total":85.81059625,"cash":null,"id":62},{"account":"IRA","date":"2025-06-28","type":"Dividend","symbol":"QQQM","qty":null,"price":null,"total":null,"cash":112.85,"id":63},{"account":"LO Invest","date":"2025-06-28","type":"Dividend","symbol":"SFY","qty":null,"price":null,"total":null,"cash":0.34,"id":64},{"account":"IRA","date":"2025-07-01","type":"Dividend","symbol":"NYSE:BIP","qty":null,"price":null,"total":null,"cash":18.16,"id":65},{"account":"IRA","date":"2025-07-01","type":"Dividend","symbol":"NYSE:BIP","qty":null,"price":null,"total":null,"cash":2.19,"id":66},{"account":"IRA","date":"2025-07-01","type":"Deposit","symbol":null,"qty":null,"price":null,"total":null,"cash":0.24,"id":67},{"account":"IRA","date":"2025-07-02","type":"Dividend","symbol":"NYSE:MCK","qty":null,"price":null,"total":null,"cash":0.56,"id":68},{"account":"LO Invest","date":"2025-07-02","type":"Dividend","symbol":"NYSE:MCK","qty":null,"price":null,"total":null,"cash":0.06,"id":69},{"account":"IRA","date":"2025-07-03","type":"Dividend","symbol":"VOO","qty":null,"price":null,"total":null,"cash":340.22,"id":70},{"account":"IRA","date":"2025-07-03","type":"Dividend","symbol":"VUG","qty":null,"price":null,"total":null,"cash":48.93,"id":71},{"account":"LO Invest","date":"2025-07-07","type":"Buy","symbol":"AZN","qty":0.61711,"price":139.78,"total":86.2596358,"cash":null,"id":72},{"account":"IRA","date":"2025-07-11","type":"Buy","symbol":"NYSE:O","qty":9.225,"price":56.71,"total":523.14975,"cash":null,"id":73},{"account":"IRA","date":"2025-08-16","type":"Dividend","symbol":"NYSE:O","qty":null,"price":null,"total":null,"cash":2.48,"id":74},{"account":"BM Tech","date":"2025-09-02","type":"Buy","symbol":"AGG","qty":0.044,"price":98.82,"total":4.34808,"cash":null,"id":75},{"account":"BM Core","date":"2025-09-02","type":"Buy","symbol":"AGG","qty":0.044,"price":98.85,"total":4.3494,"cash":null,"id":76},{"account":"BM Tech","date":"2025-09-02","type":"Buy","symbol":"BNDX","qty":0.514,"price":48.98,"total":25.17572,"cash":null,"id":77},{"account":"BM Core","date":"2025-09-02","type":"Buy","symbol":"BNDX","qty":0.514496,"price":48.98,"total":25.20001408,"cash":null,"id":78},{"account":"BM Tech","date":"2025-09-02","type":"Buy","symbol":"FWD","qty":1.531,"price":91.21,"total":139.64251,"cash":null,"id":79},{"account":"BM Tech","date":"2025-09-02","type":"Buy","symbol":"KOMP","qty":2.43,"price":57.48,"total":139.6764,"cash":null,"id":80},{"account":"BM Tech","date":"2025-09-02","type":"Buy","symbol":"MUB","qty":1.214,"price":103.89,"total":126.12246,"cash":null,"id":81},{"account":"BM Core","date":"2025-09-02","type":"Buy","symbol":"MUB","qty":1.214265,"price":103.89,"total":126.1499909,"cash":null,"id":82},{"account":"BM Core","date":"2025-09-02","type":"Buy","symbol":"SPMD","qty":1.461,"price":56.58,"total":82.66338,"cash":null,"id":83},{"account":"BM Core","date":"2025-09-02","type":"Buy","symbol":"SPSM","qty":1.347,"price":45.45,"total":61.22115,"cash":null,"id":84},{"account":"BM Core","date":"2025-09-02","type":"Buy","symbol":"SPYM","qty":9.12,"price":74.92,"total":683.2704,"cash":null,"id":85},{"account":"BM Tech","date":"2025-09-02","type":"Buy","symbol":"STIP","qty":0.029,"price":103.34,"total":2.99686,"cash":null,"id":86},{"account":"BM Core","date":"2025-09-02","type":"Buy","symbol":"STIP","qty":0.029,"price":103.36,"total":2.99744,"cash":null,"id":87},{"account":"BM Tech","date":"2025-09-02","type":"Buy","symbol":"VEA","qty":6.082,"price":57.96,"total":352.51272,"cash":null,"id":88},{"account":"BM Core","date":"2025-09-02","type":"Buy","symbol":"VEA","qty":6.457,"price":57.98,"total":374.37686,"cash":null,"id":89},{"account":"BM Tech","date":"2025-09-02","type":"Buy","symbol":"VTI","qty":1.833,"price":313.97,"total":575.50701,"cash":null,"id":90},{"account":"BM Tech","date":"2025-09-02","type":"Buy","symbol":"VWO","qty":2.195,"price":51.32,"total":112.6474,"cash":null,"id":91},{"account":"BM Core","date":"2025-09-02","type":"Buy","symbol":"VWO","qty":2.310842,"price":51.28,"total":118.4999778,"cash":null,"id":92},{"account":"BM Tech","date":"2025-09-02","type":"Buy","symbol":"VWOB","qty":0.325,"price":65.56,"total":21.307,"cash":null,"id":93},{"account":"BM Core","date":"2025-09-02","type":"Buy","symbol":"VWOB","qty":0.324794,"price":65.58,"total":21.29999052,"cash":null,"id":94},{"account":"BM Core","date":"2025-09-02","type":"Deposit","symbol":null,"qty":null,"price":null,"total":null,"cash":1500.0,"id":95},{"account":"BM Tech","date":"2025-09-02","type":"Deposit","symbol":null,"qty":null,"price":null,"total":null,"cash":1500.0,"id":96},{"account":"BM Tech","date":"2025-09-05","type":"Buy","symbol":"AGG","qty":3.534,"price":100.11,"total":353.78874,"cash":null,"id":97},{"account":"BM Tech","date":"2025-09-05","type":"Buy","symbol":"BNDX","qty":41.505,"price":49.39,"total":2049.93195,"cash":null,"id":98},{"account":"BM Tech","date":"2025-09-05","type":"Buy","symbol":"FWD","qty":121.598,"price":93.4,"total":11357.2532,"cash":null,"id":99},{"account":"BM Tech","date":"2025-09-05","type":"Buy","symbol":"KOMP","qty":194.057,"price":58.53,"total":11358.15621,"cash":null,"id":100},{"account":"BM Tech","date":"2025-09-05","type":"Buy","symbol":"MUB","qty":97.683,"price":105.05,"total":10261.59915,"cash":null,"id":101},{"account":"BM Core","date":"2025-09-05","type":"Buy","symbol":"MUB","qty":97.669,"price":105.06,"total":10261.10514,"cash":null,"id":102},{"account":"BM Tech","date":"2025-09-05","type":"Buy","symbol":"STIP","qty":2.357,"price":103.53,"total":244.02021,"cash":null,"id":103},{"account":"BM Tech","date":"2025-09-05","type":"Buy","symbol":"VEA","qty":484.774,"price":59.14,"total":28669.53436,"cash":null,"id":104},{"account":"BM Tech","date":"2025-09-05","type":"Buy","symbol":"VTI","qty":146.068,"price":320.47,"total":46810.41196,"cash":null,"id":105},{"account":"BM Tech","date":"2025-09-05","type":"Buy","symbol":"VWO","qty":175.97,"price":52.07,"total":9162.7579,"cash":null,"id":106},{"account":"BM Tech","date":"2025-09-05","type":"Buy","symbol":"VWOB","qty":26.014,"price":66.6,"total":1732.5324,"cash":null,"id":107},{"account":"BM Core","date":"2025-09-05","type":"Deposit","symbol":null,"qty":null,"price":null,"total":null,"cash":122000.0,"id":108},{"account":"BM Tech","date":"2025-09-05","type":"Deposit","symbol":null,"qty":null,"price":null,"total":null,"cash":122000.0,"id":109},{"account":"BM Core","date":"2025-09-06","type":"Buy","symbol":"AGG","qty":3.534,"price":100.13,"total":353.85942,"cash":null,"id":110},{"account":"BM Core","date":"2025-09-07","type":"Buy","symbol":"VWO","qty":185.783,"price":51.88,"total":9638.42204,"cash":null,"id":111},{"account":"BM Core","date":"2025-09-08","type":"Buy","symbol":"SPMD","qty":116.354,"price":57.77,"total":6721.77058,"cash":null,"id":112},{"account":"LO Invest","date":"2025-09-09","type":"Dividend","symbol":"AZN","qty":null,"price":null,"total":null,"cash":0.64,"id":113},{"account":"BM Core","date":"2025-09-09","type":"Buy","symbol":"STIP","qty":2.357,"price":103.55,"total":244.06735,"cash":null,"id":114},{"account":"LO Invest","date":"2025-09-09","type":"Deposit","symbol":null,"qty":null,"price":null,"total":null,"cash":-0.01,"id":115},{"account":"BM Core","date":"2025-09-10","type":"Buy","symbol":"VEA","qty":516.729,"price":58.93,"total":30450.83997,"cash":null,"id":116},{"account":"BM Core","date":"2025-09-11","type":"Buy","symbol":"VWOB","qty":26.032,"price":66.55,"total":1732.4296,"cash":null,"id":117},{"account":"BM Core","date":"2025-09-12","type":"Buy","symbol":"BNDX","qty":41.495,"price":49.4,"total":2049.853,"cash":null,"id":118},{"account":"BM Core","date":"2025-09-13","type":"Buy","symbol":"SPSM","qty":107.549,"price":46.28,"total":4977.36772,"cash":null,"id":119},{"account":"BM Core","date":"2025-09-14","type":"Buy","symbol":"SPYM","qty":730.037,"price":76.12,"total":55570.41644,"cash":null,"id":120},{"account":"IRA","date":"2025-09-16","type":"Dividend","symbol":"NYSE:O","qty":null,"price":null,"total":null,"cash":2.48,"id":121},{"account":"BM Core","date":"2025-09-24","type":"Dividend","symbol":"SPSM","qty":null,"price":null,"total":null,"cash":19.97,"id":122},{"account":"BM Tech","date":"2025-09-24","type":"Dividend","symbol":"VEA","qty":null,"price":null,"total":null,"cash":140.63,"id":123},{"account":"BM Core","date":"2025-09-24","type":"Dividend","symbol":"VEA","qty":null,"price":null,"total":null,"cash":149.89,"id":124},{"account":"BM Tech","date":"2025-09-24","type":"Dividend","symbol":"VWO","qty":null,"price":null,"total":null,"cash":49.8,"id":125},{"account":"BM Core","date":"2025-09-24","type":"Dividend","symbol":"VWO","qty":null,"price":null,"total":null,"cash":52.57,"id":126},{"account":"BM Tech","date":"2025-09-25","type":"Buy","symbol":"AGG","qty":0.421058,"price":100.01,"total":42.11001058,"cash":null,"id":127},{"account":"BM Tech","date":"2025-09-25","type":"Buy","symbol":"AGG","qty":0.0045,"price":100.0,"total":0.45,"cash":null,"id":128},{"account":"BM Core","date":"2025-09-25","type":"Buy","symbol":"AGG","qty":0.401581,"price":99.93,"total":40.12998933,"cash":null,"id":129},{"account":"BM Tech","date":"2025-09-25","type":"Buy","symbol":"BNDX","qty":4.936157,"price":49.34,"total":243.5499864,"cash":null,"id":130},{"account":"BM Tech","date":"2025-09-25","type":"Buy","symbol":"BNDX","qty":0.055927,"price":49.35,"total":2.75999745,"cash":null,"id":131},{"account":"BM Core","date":"2025-09-25","type":"Buy","symbol":"BNDX","qty":4.689781,"price":49.32,"total":231.2999989,"cash":null,"id":132},{"account":"BM Core","date":"2025-09-25","type":"Buy","symbol":"BNDX","qty":0.011348,"price":49.35,"total":0.5600238,"cash":null,"id":133},{"account":"BM Tech","date":"2025-09-25","type":"Buy","symbol":"FWD","qty":6.150408,"price":99.33,"total":610.9200266,"cash":null,"id":134},{"account":"BM Tech","date":"2025-09-25","type":"Buy","symbol":"FWD","qty":0.260024,"price":99.26,"total":25.80998224,"cash":null,"id":135},{"account":"BM Tech","date":"2025-09-25","type":"Buy","symbol":"KOMP","qty":12.406245,"price":61.49,"total":762.8600051,"cash":null,"id":136},{"account":"BM Tech","date":"2025-09-25","type":"Buy","symbol":"KOMP","qty":0.289457,"price":61.46,"total":17.79002722,"cash":null,"id":137},{"account":"BM Tech","date":"2025-09-25","type":"Dividend","symbol":"KOMP","qty":null,"price":null,"total":null,"cash":28.34,"id":138},{"account":"BM Tech","date":"2025-09-25","type":"Buy","symbol":"MUB","qty":10.259601,"price":106.24,"total":1089.98001,"cash":null,"id":139},{"account":"BM Tech","date":"2025-09-25","type":"Buy","symbol":"MUB","qty":0.150132,"price":106.24,"total":15.95002368,"cash":null,"id":140},{"account":"BM Core","date":"2025-09-25","type":"Buy","symbol":"MUB","qty":9.68255,"price":106.19,"total":1028.189985,"cash":null,"id":141},{"account":"BM Core","date":"2025-09-25","type":"Buy","symbol":"MUB","qty":0.040004,"price":106.24,"total":4.25002496,"cash":null,"id":142},{"account":"BM Core","date":"2025-09-25","type":"Buy","symbol":"SPMD","qty":15.486425,"price":56.72,"total":878.390026,"cash":null,"id":143},{"account":"BM Core","date":"2025-09-25","type":"Buy","symbol":"SPMD","qty":0.130212,"price":56.6,"total":7.3699992,"cash":null,"id":144},{"account":"BM Core","date":"2025-09-25","type":"Dividend","symbol":"SPMD","qty":null,"price":null,"total":null,"cash":23.02,"id":145},{"account":"BM Core","date":"2025-09-25","type":"Buy","symbol":"SPSM","qty":13.335955,"price":45.78,"total":610.5200199,"cash":null,"id":146},{"account":"BM Core","date":"2025-09-25","type":"Buy","symbol":"SPSM","qty":0.137169,"price":45.71,"total":6.26999499,"cash":null,"id":147},{"account":"BM Core","date":"2025-09-25","type":"Buy","symbol":"SPYM","qty":63.864969,"price":77.76,"total":4966.139989,"cash":null,"id":148},{"account":"BM Core","date":"2025-09-25","type":"Buy","symbol":"SPYM","qty":1.711801,"price":77.62,"total":132.8699936,"cash":null,"id":149},{"account":"BM Tech","date":"2025-09-25","type":"Buy","symbol":"STIP","qty":0.283295,"price":103.32,"total":29.2700394,"cash":null,"id":150},{"account":"BM Tech","date":"2025-09-25","type":"Buy","symbol":"STIP","qty":0.003,"price":103.32,"total":0.30996,"cash":null,"id":151},{"account":"BM Core","date":"2025-09-25","type":"Buy","symbol":"STIP","qty":0.268467,"price":103.29,"total":27.72995643,"cash":null,"id":152},{"account":"BM Core","date":"2025-09-25","type":"Buy","symbol":"STIP","qty":0.000484,"price":103.32,"total":0.05000688,"cash":null,"id":153},{"account":"BM Tech","date":"2025-09-25","type":"Buy","symbol":"VEA","qty":57.930941,"price":59.08,"total":3422.559994,"cash":null,"id":154},{"account":"BM Tech","date":"2025-09-25","type":"Buy","symbol":"VEA","qty":0.778286,"price":59.04,"total":45.95000544,"cash":null,"id":155},{"account":"BM Core","date":"2025-09-25","type":"Buy","symbol":"VEA","qty":56.180972,"price":59.07,"total":3318.610016,"cash":null,"id":156},{"account":"BM Core","date":"2025-09-25","type":"Buy","symbol":"VEA","qty":0.599085,"price":59.04,"total":35.3699784,"cash":null,"id":157},{"account":"BM Tech","date":"2025-09-25","type":"Buy","symbol":"VTI","qty":14.825619,"price":325.38,"total":4823.95991,"cash":null,"id":158},{"account":"BM Tech","date":"2025-09-25","type":"Buy","symbol":"VTI","qty":0.194949,"price":325.06,"total":63.37012194,"cash":null,"id":159},{"account":"BM Tech","date":"2025-09-25","type":"Buy","symbol":"VWO","qty":14.551917,"price":53.74,"total":782.0200196,"cash":null,"id":160},{"account":"BM Tech","date":"2025-09-25","type":"Buy","symbol":"VWO","qty":0.302122,"price":53.72,"total":16.22999384,"cash":null,"id":161},{"account":"BM Core","date":"2025-09-25","type":"Buy","symbol":"VWO","qty":13.358059,"price":53.79,"total":718.5299936,"cash":null,"id":162},{"account":"BM Core","date":"2025-09-25","type":"Buy","symbol":"VWO","qty":0.290022,"price":53.72,"total":15.57998184,"cash":null,"id":163},{"account":"BM Tech","date":"2025-09-25","type":"Buy","symbol":"VWOB","qty":2.875019,"price":67.05,"total":192.770024,"cash":null,"id":164},{"account":"BM Tech","date":"2025-09-25","type":"Buy","symbol":"VWOB","qty":0.026999,"price":67.04,"total":1.81001296,"cash":null,"id":165},{"account":"BM Core","date":"2025-09-25","type":"Buy","symbol":"VWOB","qty":2.693835,"price":66.99,"total":180.4600067,"cash":null,"id":166},{"account":"BM Core","date":"2025-09-25","type":"Buy","symbol":"VWOB","qty":0.002088,"price":67.04,"total":0.13997952,"cash":null,"id":167},{"account":"BM Core","date":"2025-09-25","type":"Deposit","symbol":null,"qty":null,"price":null,"total":null,"cash":12000.0,"id":168},{"account":"BM Tech","date":"2025-09-25","type":"Deposit","symbol":null,"qty":null,"price":null,"total":null,"cash":12000.0,"id":169},{"account":"BM Tech","date":"2025-09-26","type":"Buy","symbol":"FWD","qty":0.178543,"price":98.8,"total":17.6400484,"cash":null,"id":170},{"account":"BM Core","date":"2025-09-26","type":"Buy","symbol":"SPYM","qty":0.553995,"price":77.6,"total":42.990012,"cash":null,"id":171},{"account":"BM Tech","date":"2025-09-26","type":"Buy","symbol":"VWO","qty":0.2003,"price":53.42,"total":10.700026,"cash":null,"id":172},{"account":"IRA","date":"2025-09-27","type":"Dividend","symbol":"QQQM","qty":null,"price":null,"total":null,"cash":107.97,"id":173},{"account":"IRA","date":"2025-09-30","type":"Dividend","symbol":"NYSE:BIP","qty":null,"price":null,"total":null,"cash":0.05,"id":174},{"account":"IRA","date":"2025-09-30","type":"Dividend","symbol":"NYSE:BIP","qty":null,"price":null,"total":null,"cash":0.16,"id":175},{"account":"IRA","date":"2025-09-30","type":"Dividend","symbol":"NYSE:BIP","qty":null,"price":null,"total":null,"cash":14.79,"id":176},{"account":"IRA","date":"2025-09-30","type":"Dividend","symbol":"NYSE:BIP","qty":null,"price":null,"total":null,"cash":5.6,"id":177},{"account":"BM Core","date":"2025-10-01","type":"Dividend","symbol":"SPYM","qty":null,"price":null,"total":null,"cash":191.71,"id":178},{"account":"BM Tech","date":"2025-10-01","type":"Sell","symbol":"STIP","qty":0.223482,"price":103.23,"total":23.07004686,"cash":null,"id":179},{"account":"BM Core","date":"2025-10-01","type":"Sell","symbol":"STIP","qty":0.222513,"price":103.23,"total":22.97001699,"cash":null,"id":180},{"account":"BM Core","date":"2025-10-02","type":"Buy","symbol":"BNDX","qty":0.114847,"price":49.37,"total":5.66999639,"cash":null,"id":181},{"account":"BM Core","date":"2025-10-02","type":"Buy","symbol":"MUB","qty":1.539966,"price":106.34,"total":163.7599844,"cash":null,"id":182},{"account":"IRA","date":"2025-10-02","type":"Dividend","symbol":"NYSE:MCK","qty":null,"price":null,"total":null,"cash":0.65,"id":183},{"account":"LO Invest","date":"2025-10-02","type":"Dividend","symbol":"NYSE:MCK","qty":null,"price":null,"total":null,"cash":0.07,"id":184},{"account":"BM Core","date":"2025-10-02","type":"Buy","symbol":"STIP","qty":0.012788,"price":103.22,"total":1.31997736,"cash":null,"id":185},{"account":"IRA","date":"2025-10-02","type":"Dividend","symbol":"VOO","qty":null,"price":null,"total":null,"cash":339.3,"id":186},{"account":"BM Tech","date":"2025-10-02","type":"Dividend","symbol":"VTI","qty":null,"price":null,"total":null,"cash":147.8,"id":187},{"account":"IRA","date":"2025-10-02","type":"Dividend","symbol":"VUG","qty":null,"price":null,"total":null,"cash":49.16,"id":188},{"account":"BM Core","date":"2025-10-02","type":"Buy","symbol":"VWOB","qty":0.31429,"price":66.69,"total":20.9600001,"cash":null,"id":189},{"account":"BM Tech","date":"2025-10-02","type":"Fees","symbol":null,"qty":null,"price":null,"total":null,"cash":-23.07,"id":190},{"account":"BM Core","date":"2025-10-02","type":"Fees","symbol":null,"qty":null,"price":null,"total":null,"cash":-22.97,"id":191},{"account":"BM Tech","date":"2025-10-03","type":"Buy","symbol":"MUB","qty":1.389228,"price":106.39,"total":147.7999669,"cash":null,"id":192},{"account":"BM Tech","date":"2025-10-05","type":"Dividend","symbol":"BNDX","qty":null,"price":null,"total":null,"cash":4.93,"id":193},{"account":"BM Core","date":"2025-10-05","type":"Dividend","symbol":"BNDX","qty":null,"price":null,"total":null,"cash":4.9,"id":194},{"account":"BM Tech","date":"2025-10-05","type":"Dividend","symbol":"VWOB","qty":null,"price":null,"total":null,"cash":9.17,"id":195},{"account":"BM Core","date":"2025-10-05","type":"Dividend","symbol":"VWOB","qty":null,"price":null,"total":null,"cash":9.11,"id":196},{"account":"BM Tech","date":"2025-10-06","type":"Buy","symbol":"MUB","qty":0.132619,"price":106.32,"total":14.10005208,"cash":null,"id":197},{"account":"BM Core","date":"2025-10-06","type":"Buy","symbol":"MUB","qty":0.131772,"price":106.32,"total":14.00999904,"cash":null,"id":198},{"account":"BM Tech","date":"2025-10-07","type":"Dividend","symbol":"AGG","qty":null,"price":null,"total":null,"cash":1.3,"id":199},{"account":"BM Core","date":"2025-10-07","type":"Dividend","symbol":"AGG","qty":null,"price":null,"total":null,"cash":1.29,"id":200},{"account":"BM Tech","date":"2025-10-07","type":"Dividend","symbol":"MUB","qty":null,"price":null,"total":null,"cash":31.39,"id":201},{"account":"BM Core","date":"2025-10-07","type":"Dividend","symbol":"MUB","qty":null,"price":null,"total":null,"cash":31.19,"id":202},{"account":"BM Tech","date":"2025-10-07","type":"Dividend","symbol":"STIP","qty":null,"price":null,"total":null,"cash":0.64,"id":203},{"account":"BM Core","date":"2025-10-07","type":"Dividend","symbol":"STIP","qty":null,"price":null,"total":null,"cash":0.63,"id":204},{"account":"BM Core","date":"2025-10-08","type":"Buy","symbol":"BNDX","qty":0.131999,"price":49.47,"total":6.52999053,"cash":null,"id":205},{"account":"BM Tech","date":"2025-10-08","type":"Buy","symbol":"MUB","qty":0.312547,"price":106.64,"total":33.33001208,"cash":null,"id":206},{"account":"BM Core","date":"2025-10-08","type":"Buy","symbol":"MUB","qty":0.156695,"price":106.64,"total":16.7099548,"cash":null,"id":207},{"account":"BM Core","date":"2025-10-08","type":"Buy","symbol":"STIP","qty":0.008424,"price":103.28,"total":0.87003072,"cash":null,"id":208},{"account":"BM Core","date":"2025-10-08","type":"Buy","symbol":"VWOB","qty":0.134529,"price":66.9,"total":8.9999901,"cash":null,"id":209},{"account":"IRA","date":"2025-10-13","type":"Buy","symbol":"NASDAQ:AMD","qty":2.3651,"price":220.98,"total":522.639798,"cash":null,"id":210},{"account":"IRA","date":"2025-10-16","type":"Dividend","symbol":"NYSE:O","qty":null,"price":null,"total":null,"cash":2.49,"id":211},{"account":"BM Tech","date":"2025-11-03","type":"Sell","symbol":"STIP","qty":0.292173,"price":102.85,"total":30.04999305,"cash":null,"id":212},{"account":"BM Core","date":"2025-11-03","type":"Sell","symbol":"STIP","qty":0.288478,"price":102.85,"total":29.6699623,"cash":null,"id":213},{"account":"BM Tech","date":"2025-11-04","type":"Fees","symbol":null,"qty":null,"price":null,"total":null,"cash":-30.05,"id":214},{"account":"BM Core","date":"2025-11-04","type":"Fees","symbol":null,"qty":null,"price":null,"total":null,"cash":-29.67,"id":215},{"account":"BM Tech","date":"2025-11-06","type":"Dividend","symbol":"BNDX","qty":null,"price":null,"total":null,"cash":5.11,"id":216},{"account":"BM Core","date":"2025-11-06","type":"Dividend","symbol":"BNDX","qty":null,"price":null,"total":null,"cash":5.1,"id":217},{"account":"BM Tech","date":"2025-11-06","type":"Dividend","symbol":"VWOB","qty":null,"price":null,"total":null,"cash":9.28,"id":218},{"account":"BM Core","date":"2025-11-06","type":"Dividend","symbol":"VWOB","qty":null,"price":null,"total":null,"cash":9.36,"id":219},{"account":"BM Tech","date":"2025-11-07","type":"Dividend","symbol":"AGG","qty":null,"price":null,"total":null,"cash":1.31,"id":220},{"account":"BM Core","date":"2025-11-07","type":"Dividend","symbol":"AGG","qty":null,"price":null,"total":null,"cash":1.3,"id":221},{"account":"BM Tech","date":"2025-11-07","type":"Dividend","symbol":"MUB","qty":null,"price":null,"total":null,"cash":30.58,"id":222},{"account":"BM Core","date":"2025-11-07","type":"Dividend","symbol":"MUB","qty":null,"price":null,"total":null,"cash":30.39,"id":223},{"account":"BM Core","date":"2025-11-07","type":"Buy","symbol":"SPYM","qty":0.184792,"price":78.25,"total":14.459974,"cash":null,"id":224},{"account":"BM Tech","date":"2025-11-07","type":"Dividend","symbol":"STIP","qty":null,"price":null,"total":null,"cash":0.95,"id":225},{"account":"BM Core","date":"2025-11-07","type":"Dividend","symbol":"STIP","qty":null,"price":null,"total":null,"cash":0.95,"id":226},{"account":"BM Tech","date":"2025-11-07","type":"Buy","symbol":"VTI","qty":0.044003,"price":327.02,"total":14.38986106,"cash":null,"id":227},{"account":"BM Core","date":"2025-11-10","type":"Buy","symbol":"BNDX","qty":0.391541,"price":49.65,"total":19.44001065,"cash":null,"id":228},{"account":"BM Tech","date":"2025-11-10","type":"Buy","symbol":"MUB","qty":0.306315,"price":107.21,"total":32.84003115,"cash":null,"id":229},{"account":"BM Core","date":"2025-11-10","type":"Buy","symbol":"MUB","qty":0.123123,"price":107.21,"total":13.20001683,"cash":null,"id":230},{"account":"IRA","date":"2025-11-15","type":"Dividend","symbol":"NYSE:O","qty":null,"price":null,"total":null,"cash":2.49,"id":231},{"account":"BM Core","date":"2025-11-17","type":"Sell","symbol":"SPMD","qty":116.353644,"price":55.57,"total":6465.771997,"cash":null,"id":232},{"account":"BM Core","date":"2025-11-17","type":"Buy","symbol":"SPSM","qty":0.89347,"price":44.87,"total":40.0899989,"cash":null,"id":233},{"account":"BM Core","date":"2025-11-17","type":"Buy","symbol":"VO","qty":22.679938,"price":283.32,"total":6425.680034,"cash":null,"id":234},{"account":"BM Core","date":"2025-11-20","type":"Buy","symbol":"SCHA","qty":177.819173,"price":26.6,"total":4729.990002,"cash":null,"id":235},{"account":"BM Core","date":"2025-11-20","type":"Sell","symbol":"SPSM","qty":107.548617,"price":43.98,"total":4729.988176,"cash":null,"id":236},{"account":"BM Tech","date":"2025-12-01","type":"Sell","symbol":"STIP","qty":0.282026,"price":102.65,"total":28.9499689,"cash":null,"id":237},{"account":"BM Core","date":"2025-12-01","type":"Sell","symbol":"STIP","qty":0.280175,"price":102.65,"total":28.75996375,"cash":null,"id":238},{"account":"BM Tech","date":"2025-12-02","type":"Fees","symbol":null,"qty":null,"price":null,"total":null,"cash":-28.95,"id":239},{"account":"BM Core","date":"2025-12-02","type":"Fees","symbol":null,"qty":null,"price":null,"total":null,"cash":-28.76,"id":240},{"account":"BM Tech","date":"2025-12-04","type":"Dividend","symbol":"BNDX","qty":null,"price":null,"total":null,"cash":4.91,"id":241},{"account":"BM Core","date":"2025-12-04","type":"Dividend","symbol":"BNDX","qty":null,"price":null,"total":null,"cash":4.94,"id":242},{"account":"BM Tech","date":"2025-12-04","type":"Dividend","symbol":"VWOB","qty":null,"price":null,"total":null,"cash":9.32,"id":243},{"account":"BM Core","date":"2025-12-04","type":"Dividend","symbol":"VWOB","qty":null,"price":null,"total":null,"cash":9.4,"id":244},{"account":"BM Tech","date":"2025-12-05","type":"Dividend","symbol":"AGG","qty":null,"price":null,"total":null,"cash":1.31,"id":245},{"account":"BM Core","date":"2025-12-05","type":"Dividend","symbol":"AGG","qty":null,"price":null,"total":null,"cash":1.3,"id":246},{"account":"BM Tech","date":"2025-12-05","type":"Buy","symbol":"MUB","qty":0.133165,"price":106.86,"total":14.2300119,"cash":null,"id":247},{"account":"BM Tech","date":"2025-12-05","type":"Dividend","symbol":"MUB","qty":null,"price":null,"total":null,"cash":32.12,"id":248},{"account":"BM Core","date":"2025-12-05","type":"Buy","symbol":"MUB","qty":0.134194,"price":106.86,"total":14.33997084,"cash":null,"id":249},{"account":"BM Core","date":"2025-12-05","type":"Dividend","symbol":"MUB","qty":null,"price":null,"total":null,"cash":31.86,"id":250},{"account":"BM Tech","date":"2025-12-05","type":"Dividend","symbol":"STIP","qty":null,"price":null,"total":null,"cash":0.78,"id":251},{"account":"BM Core","date":"2025-12-05","type":"Dividend","symbol":"STIP","qty":null,"price":null,"total":null,"cash":0.79,"id":252},{"account":"BM Tech","date":"2025-12-08","type":"Buy","symbol":"MUB","qty":0.320228,"price":106.83,"total":34.20995724,"cash":null,"id":253},{"account":"BM Core","date":"2025-12-08","type":"Buy","symbol":"MUB","qty":0.317795,"price":106.83,"total":33.95003985,"cash":null,"id":254},{"account":"BM Core","date":"2025-12-15","type":"Dividend","symbol":"SCHA","qty":null,"price":null,"total":null,"cash":23.13,"id":255},{"account":"IRA","date":"2025-12-16","type":"Dividend","symbol":"NYSE:O","qty":null,"price":null,"total":null,"cash":2.49,"id":256},{"account":"IRA","date":"2025-12-16","type":"Dividend","symbol":"TIRTX","qty":null,"price":null,"total":null,"cash":14227.97,"id":257},{"account":"BM Core","date":"2025-12-17","type":"Buy","symbol":"MUB","qty":0.216249,"price":106.96,"total":23.12999304,"cash":null,"id":258},{"account":"BM Tech","date":"2025-12-18","type":"Sell","symbol":"BNDX","qty":46.497247,"price":48.33,"total":2247.211948,"cash":null,"id":259},{"account":"BM Core","date":"2025-12-18","type":"Sell","symbol":"BNDX","qty":46.834253,"price":48.33,"total":2263.499447,"cash":null,"id":260},{"account":"BM Tech","date":"2025-12-18","type":"Buy","symbol":"IAGG","qty":43.288678,"price":51.58,"total":2232.830011,"cash":null,"id":261},{"account":"BM Core","date":"2025-12-18","type":"Buy","symbol":"IAGG","qty":43.115355,"price":51.58,"total":2223.890011,"cash":null,"id":262},{"account":"BM Core","date":"2025-12-18","type":"Buy","symbol":"MUB","qty":0.369945,"price":107.07,"total":39.61001115,"cash":null,"id":263},{"account":"BM Tech","date":"2025-12-18","type":"Buy","symbol":"VWOB","qty":0.213353,"price":67.4,"total":14.3799922,"cash":null,"id":264},{"account":"BM Tech","date":"2025-12-19","type":"Dividend","symbol":"FWD","qty":null,"price":null,"total":null,"cash":14.67,"id":265},{"account":"BM Tech","date":"2025-12-22","type":"Buy","symbol":"IAGG","qty":0.29387,"price":49.92,"total":14.6699904,"cash":null,"id":266},{"account":"BM Tech","date":"2025-12-23","type":"Dividend","symbol":"BNDX","qty":null,"price":null,"total":null,"cash":45.54,"id":267},{"account":"BM Core","date":"2025-12-23","type":"Dividend","symbol":"BNDX","qty":null,"price":null,"total":null,"cash":45.86,"id":268},{"account":"BM Tech","date":"2025-12-23","type":"Dividend","symbol":"VWOB","qty":null,"price":null,"total":null,"cash":9.22,"id":269},{"account":"BM Core","date":"2025-12-23","type":"Dividend","symbol":"VWOB","qty":null,"price":null,"total":null,"cash":9.3,"id":270},{"account":"BM Tech","date":"2025-12-24","type":"Dividend","symbol":"VEA","qty":null,"price":null,"total":null,"cash":571.55,"id":271},{"account":"BM Core","date":"2025-12-24","type":"Dividend","symbol":"VEA","qty":null,"price":null,"total":null,"cash":603.16,"id":272},{"account":"BM Tech","date":"2025-12-24","type":"Dividend","symbol":"VWO","qty":null,"price":null,"total":null,"cash":199.5,"id":273},{"account":"BM Core","date":"2025-12-24","type":"Dividend","symbol":"VWO","qty":null,"price":null,"total":null,"cash":208.3,"id":274},{"account":"BM Tech","date":"2025-12-25","type":"Dividend","symbol":"AGG","qty":null,"price":null,"total":null,"cash":1.34,"id":275},{"account":"BM Core","date":"2025-12-25","type":"Dividend","symbol":"AGG","qty":null,"price":null,"total":null,"cash":1.33,"id":276},{"account":"BM Tech","date":"2025-12-25","type":"Dividend","symbol":"IAGG","qty":null,"price":null,"total":null,"cash":66.61,"id":277},{"account":"BM Core","date":"2025-12-25","type":"Dividend","symbol":"IAGG","qty":null,"price":null,"total":null,"cash":66.34,"id":278},{"account":"BM Tech","date":"2025-12-25","type":"Dividend","symbol":"KOMP","qty":null,"price":null,"total":null,"cash":150.08,"id":279},{"account":"BM Tech","date":"2025-12-25","type":"Dividend","symbol":"MUB","qty":null,"price":null,"total":null,"cash":31.95,"id":280},{"account":"BM Core","date":"2025-12-25","type":"Dividend","symbol":"MUB","qty":null,"price":null,"total":null,"cash":31.86,"id":281},{"account":"BM Core","date":"2025-12-25","type":"Dividend","symbol":"SPMD","qty":null,"price":null,"total":null,"cash":3.72,"id":282},{"account":"BM Core","date":"2025-12-25","type":"Dividend","symbol":"SPSM","qty":null,"price":null,"total":null,"cash":3.71,"id":283},{"account":"BM Tech","date":"2025-12-25","type":"Dividend","symbol":"STIP","qty":null,"price":null,"total":null,"cash":0.66,"id":284},{"account":"BM Core","date":"2025-12-25","type":"Dividend","symbol":"STIP","qty":null,"price":null,"total":null,"cash":0.66,"id":285},{"account":"BM Core","date":"2025-12-25","type":"Dividend","symbol":"VO","qty":null,"price":null,"total":null,"cash":26.04,"id":286},{"account":"IRA","date":"2025-12-25","type":"Dividend","symbol":"VOO","qty":null,"price":null,"total":null,"cash":345.35,"id":287},{"account":"BM Tech","date":"2025-12-25","type":"Dividend","symbol":"VTI","qty":null,"price":null,"total":null,"cash":154.95,"id":288},{"account":"IRA","date":"2025-12-25","type":"Dividend","symbol":"VUG","qty":null,"price":null,"total":null,"cash":48.43,"id":289},{"account":"BM Tech","date":"2025-12-26","type":"Buy","symbol":"AGG","qty":0.191171,"price":100.12,"total":19.14004052,"cash":null,"id":290},{"account":"BM Core","date":"2025-12-26","type":"Buy","symbol":"AGG","qty":0.194267,"price":100.12,"total":19.45001204,"cash":null,"id":291},{"account":"BM Tech","date":"2025-12-26","type":"Buy","symbol":"IAGG","qty":4.42504,"price":50.16,"total":221.9600064,"cash":null,"id":292},{"account":"BM Core","date":"2025-12-26","type":"Buy","symbol":"IAGG","qty":4.641547,"price":50.16,"total":232.8199975,"cash":null,"id":293},{"account":"BM Tech","date":"2025-12-26","type":"Buy","symbol":"KOMP","qty":7.947516,"price":60.78,"total":483.0500225,"cash":null,"id":294},{"account":"BM Tech","date":"2025-12-26","type":"Buy","symbol":"MUB","qty":1.946817,"price":106.99,"total":208.2899508,"cash":null,"id":295},{"account":"BM Core","date":"2025-12-26","type":"Buy","symbol":"MUB","qty":1.663707,"price":106.99,"total":178.0000119,"cash":null,"id":296},{"account":"BM Core","date":"2025-12-26","type":"Buy","symbol":"SPMD","qty":1.521105,"price":58.99,"total":89.72998395,"cash":null,"id":297},{"account":"BM Tech","date":"2025-12-26","type":"Buy","symbol":"STIP","qty":0.953804,"price":102.39,"total":97.65999156,"cash":null,"id":298},{"account":"BM Core","date":"2025-12-26","type":"Buy","symbol":"STIP","qty":0.92929,"price":102.39,"total":95.1500031,"cash":null,"id":299},{"account":"BM Tech","date":"2025-12-26","type":"Buy","symbol":"VWO","qty":2.531899,"price":53.92,"total":136.5199941,"cash":null,"id":300},{"account":"BM Core","date":"2025-12-26","type":"Buy","symbol":"VWO","qty":6.198442,"price":53.92,"total":334.2199926,"cash":null,"id":301},{"account":"BM Tech","date":"2025-12-26","type":"Buy","symbol":"VWOB","qty":0.958001,"price":67.62,"total":64.78002762,"cash":null,"id":302},{"account":"BM Core","date":"2025-12-26","type":"Buy","symbol":"VWOB","qty":0.752884,"price":67.62,"total":50.91001608,"cash":null,"id":303},{"account":"IRA","date":"2025-12-27","type":"Dividend","symbol":"QQQM","qty":null,"price":null,"total":null,"cash":115.31,"id":304},{"account":"IRA","date":"2025-12-29","type":"Buy","symbol":"NYSE:CVE","qty":875.57507,"price":16.839824,"total":14744.53008,"cash":null,"id":305},{"account":"BM Core","date":"2025-12-31","type":"Dividend","symbol":"SPYM","qty":null,"price":null,"total":null,"cash":191.85,"id":306},{"account":"IRA","date":"2026-01-01","type":"Dividend","symbol":"NYSE:BIP","qty":null,"price":null,"total":null,"cash":0.04,"id":307},{"account":"IRA","date":"2026-01-01","type":"Dividend","symbol":"NYSE:BIP","qty":null,"price":null,"total":null,"cash":13.0,"id":308},{"account":"IRA","date":"2026-01-01","type":"Dividend","symbol":"NYSE:BIP","qty":null,"price":null,"total":null,"cash":7.55,"id":309},{"account":"LO Invest","date":"2026-01-01","type":"Dividend","symbol":"SFY","qty":null,"price":null,"total":null,"cash":0.31,"id":310},{"account":"BM Tech","date":"2026-01-02","type":"Sell","symbol":"STIP","qty":0.296669,"price":102.37,"total":30.37000553,"cash":null,"id":311},{"account":"BM Core","date":"2026-01-02","type":"Sell","symbol":"STIP","qty":0.295204,"price":102.37,"total":30.22003348,"cash":null,"id":312},{"account":"IRA","date":"2026-01-03","type":"Dividend","symbol":"NYSE:MCK","qty":null,"price":null,"total":null,"cash":0.65,"id":313},{"account":"LO Invest","date":"2026-01-03","type":"Dividend","symbol":"NYSE:MCK","qty":null,"price":null,"total":null,"cash":0.07,"id":314},{"account":"BM Core","date":"2026-01-05","type":"Buy","symbol":"AGG","qty":0.03299,"price":100.03,"total":3.2999897,"cash":null,"id":315},{"account":"BM Core","date":"2026-01-05","type":"Buy","symbol":"IAGG","qty":0.39094,"price":50.11,"total":19.5900034,"cash":null,"id":316},{"account":"BM Core","date":"2026-01-05","type":"Buy","symbol":"MUB","qty":0.463517,"price":107.31,"total":49.74000927,"cash":null,"id":317},{"account":"BM Core","date":"2026-01-05","type":"Buy","symbol":"SPYM","qty":0.861988,"price":81.08,"total":69.88998704,"cash":null,"id":318},{"account":"BM Core","date":"2026-01-05","type":"Buy","symbol":"STIP","qty":0.313262,"price":102.47,"total":32.09995714,"cash":null,"id":319},{"account":"BM Core","date":"2026-01-05","type":"Buy","symbol":"VWOB","qty":0.255146,"price":67.53,"total":17.23000938,"cash":null,"id":320},{"account":"BM Tech","date":"2026-01-05","type":"Fees","symbol":null,"qty":null,"price":null,"total":null,"cash":-30.37,"id":321},{"account":"BM Core","date":"2026-01-05","type":"Fees","symbol":null,"qty":null,"price":null,"total":null,"cash":-30.22,"id":322},{"account":"IRA","date":"2026-01-16","type":"Dividend","symbol":"NYSE:O","qty":null,"price":null,"total":null,"cash":2.49,"id":323},{"account":"IRA","date":"2026-01-17","type":"Cash sweep payment","symbol":null,"qty":null,"price":null,"total":null,"cash":0.06,"id":324},{"account":"BM Tech","date":"2026-01-20","type":"Buy","symbol":"BNDX","qty":41.145485,"price":48.39,"total":1991.030019,"cash":null,"id":325},{"account":"BM Core","date":"2026-01-20","type":"Buy","symbol":"BNDX","qty":44.44224,"price":48.39,"total":2150.559994,"cash":null,"id":326},{"account":"BM Tech","date":"2026-01-20","type":"Sell","symbol":"IAGG","qty":43.288678,"price":50.13,"total":2170.061428,"cash":null,"id":327},{"account":"BM Core","date":"2026-01-20","type":"Sell","symbol":"IAGG","qty":43.115355,"price":50.13,"total":2161.372746,"cash":null,"id":328},{"account":"BM Tech","date":"2026-01-20","type":"Buy","symbol":"MUB","qty":1.669122,"price":107.26,"total":179.0300257,"cash":null,"id":329},{"account":"BM Core","date":"2026-01-20","type":"Buy","symbol":"VWOB","qty":0.161007,"price":67.14,"total":10.81000998,"cash":null,"id":330},{"account":"BM Core","date":"2026-02-01","type":"Sell","symbol":"STIP","qty":0.302063,"price":102.76,"total":31.03999388,"cash":null,"id":331},{"account":"BM Tech","date":"2026-02-02","type":"Sell","symbol":"AGG","qty":0.204956,"price":99.68,"total":20.43001408,"cash":null,"id":332},{"account":"BM Tech","date":"2026-02-02","type":"Sell","symbol":"STIP","qty":0.10724,"price":102.76,"total":11.0199824,"cash":null,"id":333},{"account":"BM Tech","date":"2026-02-03","type":"Fees","symbol":null,"qty":null,"price":null,"total":null,"cash":-31.45,"id":334},{"account":"BM Core","date":"2026-02-03","type":"Fees","symbol":null,"qty":null,"price":null,"total":null,"cash":-31.04,"id":335},{"account":"BM Tech","date":"2026-02-05","type":"Dividend","symbol":"BNDX","qty":null,"price":null,"total":null,"cash":4.68,"id":336},{"account":"BM Core","date":"2026-02-05","type":"Dividend","symbol":"BNDX","qty":null,"price":null,"total":null,"cash":5.05,"id":337},{"account":"BM Tech","date":"2026-02-05","type":"Dividend","symbol":"VWOB","qty":null,"price":null,"total":null,"cash":10.33,"id":338},{"account":"BM Core","date":"2026-02-05","type":"Dividend","symbol":"VWOB","qty":null,"price":null,"total":null,"cash":10.42,"id":339},{"account":"BM Tech","date":"2026-02-06","type":"Dividend","symbol":"AGG","qty":null,"price":null,"total":null,"cash":1.36,"id":340},{"account":"BM Core","date":"2026-02-06","type":"Dividend","symbol":"AGG","qty":null,"price":null,"total":null,"cash":1.37,"id":341},{"account":"BM Tech","date":"2026-02-06","type":"Buy","symbol":"BNDX","qty":0.30923,"price":48.54,"total":15.0100242,"cash":null,"id":342},{"account":"BM Tech","date":"2026-02-06","type":"Dividend","symbol":"IAGG","qty":null,"price":null,"total":null,"cash":0.5,"id":343},{"account":"BM Core","date":"2026-02-06","type":"Dividend","symbol":"IAGG","qty":null,"price":null,"total":null,"cash":0.54,"id":344},{"account":"BM Tech","date":"2026-02-06","type":"Dividend","symbol":"MUB","qty":null,"price":null,"total":null,"cash":32.23,"id":345},{"account":"BM Core","date":"2026-02-06","type":"Buy","symbol":"MUB","qty":0.14364,"price":107.7,"total":15.470028,"cash":null,"id":346},{"account":"BM Core","date":"2026-02-06","type":"Dividend","symbol":"MUB","qty":null,"price":null,"total":null,"cash":31.73,"id":347},{"account":"BM Tech","date":"2026-02-09","type":"Buy","symbol":"MUB","qty":0.316292,"price":107.78,"total":34.08995176,"cash":null,"id":348},{"account":"BM Core","date":"2026-02-09","type":"Buy","symbol":"MUB","qty":0.312117,"price":107.78,"total":33.63997026,"cash":null,"id":349},{"account":"IRA","date":"2026-02-14","type":"Dividend","symbol":"NYSE:O","qty":null,"price":null,"total":null,"cash":2.49,"id":350},{"account":"BM Core","date":"2026-03-02","type":"Sell","symbol":"STIP","qty":0.276561,"price":103.16,"total":28.53003276,"cash":null,"id":351},{"account":"BM Tech","date":"2026-03-02","type":"Sell","symbol":"STIP","qty":0.279275,"price":103.16,"total":28.810009,"cash":null,"id":352},{"account":"BM Core","date":"2026-03-02","type":"Fees","symbol":null,"qty":null,"price":null,"total":null,"cash":-28.53,"id":353},{"account":"BM Tech","date":"2026-03-02","type":"Fees","symbol":null,"qty":null,"price":null,"total":null,"cash":-28.81,"id":354},{"account":"IRA","date":"2026-03-03","type":"Deposit","symbol":null,"qty":null,"price":null,"total":null,"cash":31761.28,"id":355},{"account":"IRA","date":"2026-03-03","type":"Bonus","symbol":null,"qty":null,"price":null,"total":null,"cash":317.61,"id":356},{"account":"IRA","date":"2026-03-05","type":"Buy","symbol":"AVUV","qty":94.24915,"price":111.78,"total":10535.16999,"cash":null,"id":357},{"account":"BM Core","date":"2026-03-05","type":"Dividend","symbol":"BNDX","qty":null,"price":null,"total":null,"cash":4.49,"id":358},{"account":"BM Tech","date":"2026-03-05","type":"Dividend","symbol":"BNDX","qty":null,"price":null,"total":null,"cash":4.19,"id":359},{"account":"IRA","date":"2026-03-05","type":"Sell","symbol":"QQQM","qty":59.62555,"price":251.515,"total":14996.72021,"cash":null,"id":360},{"account":"BM Core","date":"2026-03-05","type":"Dividend","symbol":"VWOB","qty":null,"price":null,"total":null,"cash":9.8,"id":361},{"account":"BM Tech","date":"2026-03-05","type":"Dividend","symbol":"VWOB","qty":null,"price":null,"total":null,"cash":9.72,"id":362},{"account":"IRA","date":"2026-03-05","type":"Buy","symbol":"VXUS","qty":271.45733,"price":79.46,"total":21569.99944,"cash":null,"id":363},{"account":"BM Core","date":"2026-03-06","type":"Dividend","symbol":"AGG","qty":null,"price":null,"total":null,"cash":1.33,"id":364},{"account":"BM Tech","date":"2026-03-06","type":"Dividend","symbol":"AGG","qty":null,"price":null,"total":null,"cash":1.26,"id":365},{"account":"BM Tech","date":"2026-03-06","type":"Buy","symbol":"BNDX","qty":0.287219,"price":48.43,"total":13.91001617,"cash":null,"id":366},{"account":"BM Core","date":"2026-03-06","type":"Dividend","symbol":"MUB","qty":null,"price":null,"total":null,"cash":33.37,"id":367},{"account":"BM Tech","date":"2026-03-06","type":"Dividend","symbol":"MUB","qty":null,"price":null,"total":null,"cash":33.85,"id":368},{"account":"BM Core","date":"2026-03-06","type":"Buy","symbol":"SPYM","qty":0.180043,"price":79.37,"total":14.29001291,"cash":null,"id":369},{"account":"BM Core","date":"2026-03-09","type":"Buy","symbol":"SPYM","qty":0.440244,"price":78.82,"total":34.70003208,"cash":null,"id":370},{"account":"BM Tech","date":"2026-03-09","type":"Buy","symbol":"VTI","qty":0.106436,"price":329.87,"total":35.11004332,"cash":null,"id":371},{"account":"IRA","date":"2026-03-13","type":"Dividend","symbol":"AVUV","qty":null,"price":null,"total":null,"cash":26.39,"id":372},{"account":"IRA","date":"2026-03-13","type":"Dividend","symbol":"AVUV","qty":null,"price":null,"total":null,"cash":26.39,"id":373},{"account":"IRA","date":"2026-03-17","type":"Cash sweep payment","symbol":null,"qty":null,"price":null,"total":null,"cash":0.06,"id":374},{"account":"BM Core","date":"2026-03-18","type":"Dividend","symbol":"SPYM","qty":null,"price":null,"total":null,"cash":156.64,"id":375},{"account":"BM Core","date":"2026-03-19","type":"Buy","symbol":"SPYM","qty":2.025081,"price":77.35,"total":156.6400154,"cash":null,"id":376},{"account":"BM Core","date":"2026-03-23","type":"Sell","symbol":"AGG","qty":0.478006,"price":99.12,"total":47.37995472,"cash":null,"id":377},{"account":"BM Tech","date":"2026-03-23","type":"Sell","symbol":"AGG","qty":0.210245,"price":99.17,"total":20.84999665,"cash":null,"id":378},{"account":"BM Core","date":"2026-03-23","type":"Sell","symbol":"BNDX","qty":0.527784,"price":48.05,"total":25.3600212,"cash":null,"id":379},{"account":"BM Tech","date":"2026-03-23","type":"Sell","symbol":"FWD","qty":22.59957,"price":111.63,"total":2522.789999,"cash":null,"id":380},{"account":"BM Core","date":"2026-03-23","type":"Sell","symbol":"IAGG","qty":4.939728,"price":49.94,"total":246.6900163,"cash":null,"id":381},{"account":"BM Tech","date":"2026-03-23","type":"Sell","symbol":"IAGG","qty":1.934587,"price":49.99,"total":96.71000413,"cash":null,"id":382},{"account":"BM Tech","date":"2026-03-23","type":"Sell","symbol":"KOMP","qty":18.801058,"price":60.47,"total":1136.899977,"cash":null,"id":383},{"account":"BM Core","date":"2026-03-23","type":"Sell","symbol":"MUB","qty":13.238417,"price":106.41,"total":1408.699953,"cash":null,"id":384},{"account":"BM Tech","date":"2026-03-23","type":"Sell","symbol":"MUB","qty":13.331861,"price":106.43,"total":1418.909966,"cash":null,"id":385},{"account":"BM Core","date":"2026-03-23","type":"Sell","symbol":"SCHA","qty":1.641148,"price":29.26,"total":48.01999048,"cash":null,"id":386},{"account":"BM Core","date":"2026-03-23","type":"Sell","symbol":"SPSM","qty":15.424174,"price":48.4,"total":746.5300216,"cash":null,"id":387},{"account":"BM Core","date":"2026-03-23","type":"Sell","symbol":"SPYM","qty":40.387421,"price":77.59,"total":3133.659995,"cash":null,"id":388},{"account":"BM Core","date":"2026-03-23","type":"Sell","symbol":"VEA","qty":84.636165,"price":64.04,"total":5420.100007,"cash":null,"id":389},{"account":"BM Tech","date":"2026-03-23","type":"Sell","symbol":"VEA","qty":77.037395,"price":64.18,"total":4944.260011,"cash":null,"id":390},{"account":"BM Core","date":"2026-03-23","type":"Sell","symbol":"VO","qty":8.699005,"price":290.47,"total":2526.799982,"cash":null,"id":391},{"account":"BM Tech","date":"2026-03-23","type":"Sell","symbol":"VTI","qty":11.59528,"price":327.14,"total":3793.279899,"cash":null,"id":392},{"account":"BM Core","date":"2026-03-23","type":"Sell","symbol":"VWO","qty":22.014837,"price":53.92,"total":1187.040011,"cash":null,"id":393},{"account":"BM Tech","date":"2026-03-23","type":"Sell","symbol":"VWO","qty":16.598227,"price":54.16,"total":898.9599743,"cash":null,"id":394},{"account":"BM Core","date":"2026-03-23","type":"Sell","symbol":"VWOB","qty":3.187718,"price":65.79,"total":209.7199672,"cash":null,"id":395},{"account":"BM Tech","date":"2026-03-23","type":"Sell","symbol":"VWOB","qty":2.540458,"price":65.87,"total":167.3399685,"cash":null,"id":396},{"account":"LO Invest","date":"2026-03-24","type":"Dividend","symbol":"AZN","qty":null,"price":null,"total":null,"cash":1.34,"id":397},{"account":"IRA","date":"2026-03-24","type":"Dividend","symbol":"O","qty":null,"price":null,"total":null,"cash":2.49,"id":398},{"account":"BM Core","date":"2026-03-24","type":"Deposit","symbol":null,"qty":null,"price":null,"total":null,"cash":-15000.0,"id":399},{"account":"BM Tech","date":"2026-03-24","type":"Deposit","symbol":null,"qty":null,"price":null,"total":null,"cash":-15000.0,"id":400},{"account":"BM Core","date":"2026-03-25","type":"Dividend","symbol":"VEA","qty":null,"price":null,"total":null,"cash":63.22,"id":401},{"account":"BM Tech","date":"2026-03-25","type":"Dividend","symbol":"VEA","qty":null,"price":null,"total":null,"cash":59.9,"id":402},{"account":"IRA","date":"2026-03-25","type":"Dividend","symbol":"VXUS","qty":null,"price":null,"total":null,"cash":21.58,"id":403},{"account":"BM Tech","date":"2026-03-26","type":"Buy","symbol":"FWD","qty":0.548083,"price":109.29,"total":59.89999107,"cash":null,"id":404},{"account":"BM Tech","date":"2026-03-26","type":"Dividend","symbol":"KOMP","qty":null,"price":null,"total":null,"cash":15.98,"id":405},{"account":"BM Core","date":"2026-03-26","type":"Buy","symbol":"SCHX","qty":2.384914,"price":25.72,"total":61.33998808,"cash":null,"id":406},{"account":"BM Core","date":"2026-03-26","type":"Dividend","symbol":"SPMD","qty":null,"price":null,"total":null,"cash":3.43,"id":407},{"account":"BM Core","date":"2026-03-26","type":"Dividend","symbol":"SPSM","qty":null,"price":null,"total":null,"cash":2.6,"id":408},{"account":"BM Core","date":"2026-03-26","type":"Buy","symbol":"VEA","qty":0.029719,"price":63.26,"total":1.88002394,"cash":null,"id":409},{"account":"IRA","date":"2026-03-27","type":"Buy","symbol":"AVUV","qty":46.11263,"price":110.0,"total":5072.3893,"cash":null,"id":410},{"account":"BM Tech","date":"2026-03-27","type":"Sell","symbol":"FWD","qty":0.149766,"price":106.7,"total":15.9800322,"cash":null,"id":411},{"account":"BM Core","date":"2026-03-27","type":"Buy","symbol":"SCHX","qty":0.238906,"price":25.24,"total":6.02998744,"cash":null,"id":412},{"account":"IRA","date":"2026-03-27","type":"Buy","symbol":"VXUS","qty":133.0,"price":74.9988,"total":9974.8404,"cash":null,"id":413},{"account":"IRA","date":"2026-03-28","type":"Dividend","symbol":"QQQM","qty":null,"price":null,"total":null,"cash":97.45,"id":414},{"account":"BM Core","date":"2026-03-31","type":"Sell","symbol":"AGG","qty":0.262866,"price":99.29,"total":26.09996514,"cash":null,"id":415},{"account":"BM Tech","date":"2026-03-31","type":"Sell","symbol":"AGG","qty":0.289556,"price":99.29,"total":28.75001524,"cash":null,"id":416},{"account":"BM Core","date":"2026-03-31","type":"Sell","symbol":"BNDX","qty":2.864622,"price":47.94,"total":137.3299787,"cash":null,"id":417},{"account":"BM Tech","date":"2026-03-31","type":"Sell","symbol":"BNDX","qty":0.448894,"price":47.94,"total":21.51997836,"cash":null,"id":418},{"account":"BM Tech","date":"2026-03-31","type":"Sell","symbol":"FWD","qty":2.487134,"price":106.09,"total":263.8600461,"cash":null,"id":419},{"account":"BM Core","date":"2026-03-31","type":"Sell","symbol":"IAGG","qty":0.091073,"price":49.96,"total":4.55000708,"cash":null,"id":420},{"account":"BM Tech","date":"2026-03-31","type":"Sell","symbol":"IAGG","qty":2.729183,"price":49.96,"total":136.3499827,"cash":null,"id":421},{"account":"BM Tech","date":"2026-03-31","type":"Sell","symbol":"KOMP","qty":3.681581,"price":57.44,"total":211.4700126,"cash":null,"id":422},{"account":"BM Core","date":"2026-03-31","type":"Sell","symbol":"MUB","qty":6.983815,"price":106.27,"total":742.1700201,"cash":null,"id":423},{"account":"BM Tech","date":"2026-03-31","type":"Sell","symbol":"MUB","qty":7.749694,"price":106.27,"total":823.5599814,"cash":null,"id":424},{"account":"BM Core","date":"2026-03-31","type":"Sell","symbol":"SCHA","qty":7.607379,"price":28.73,"total":218.5599987,"cash":null,"id":425},{"account":"BM Core","date":"2026-03-31","type":"Dividend","symbol":"SCHA","qty":null,"price":null,"total":null,"cash":6.77,"id":426},{"account":"BM Core","date":"2026-03-31","type":"Sell","symbol":"SCHX","qty":2.569231,"price":25.35,"total":65.13000585,"cash":null,"id":427},{"account":"BM Core","date":"2026-03-31","type":"Sell","symbol":"SPSM","qty":0.283598,"price":47.92,"total":13.59001616,"cash":null,"id":428},{"account":"BM Core","date":"2026-03-31","type":"Sell","symbol":"SPYM","qty":31.173057,"price":75.64,"total":2357.930031,"cash":null,"id":429},{"account":"BM Core","date":"2026-03-31","type":"Sell","symbol":"VEA","qty":25.654462,"price":63.09,"total":1618.540008,"cash":null,"id":430},{"account":"BM Tech","date":"2026-03-31","type":"Sell","symbol":"VEA","qty":27.123157,"price":63.09,"total":1711.199975,"cash":null,"id":431},{"account":"BM Core","date":"2026-03-31","type":"Sell","symbol":"VO","qty":0.799958,"price":284.49,"total":227.5800514,"cash":null,"id":432},{"account":"BM Tech","date":"2026-03-31","type":"Sell","symbol":"VTI","qty":6.814561,"price":317.14,"total":2161.169876,"cash":null,"id":433},{"account":"BM Core","date":"2026-03-31","type":"Sell","symbol":"VWO","qty":8.904735,"price":53.01,"total":472.0400024,"cash":null,"id":434},{"account":"BM Tech","date":"2026-03-31","type":"Sell","symbol":"VWO","qty":9.663837,"price":53.01,"total":512.2799994,"cash":null,"id":435},{"account":"BM Core","date":"2026-03-31","type":"Sell","symbol":"VWOB","qty":1.777506,"price":65.53,"total":116.4799682,"cash":null,"id":436},{"account":"BM Tech","date":"2026-03-31","type":"Sell","symbol":"VWOB","qty":1.981383,"price":65.53,"total":129.840028,"cash":null,"id":437},{"account":"IRA","date":"2026-04-01","type":"Dividend","symbol":"BIP","qty":null,"price":null,"total":null,"cash":21.79,"id":438},{"account":"IRA","date":"2026-04-01","type":"Dividend","symbol":"NYSE:CVE","qty":null,"price":null,"total":null,"cash":127.68,"id":439},{"account":"BM Core","date":"2026-04-01","type":"Dividend","symbol":"VO","qty":null,"price":null,"total":null,"cash":15.05,"id":440},{"account":"IRA","date":"2026-04-01","type":"Dividend","symbol":"VOO","qty":null,"price":null,"total":null,"cash":365.12,"id":441},{"account":"BM Core","date":"2026-04-01","type":"Buy","symbol":"VTEB","qty":0.135671,"price":49.9,"total":6.7699829,"cash":null,"id":442},{"account":"BM Tech","date":"2026-04-01","type":"Dividend","symbol":"VTI","qty":null,"price":null,"total":null,"cash":151.2,"id":443},{"account":"IRA","date":"2026-04-01","type":"Dividend","symbol":"VUG","qty":null,"price":null,"total":null,"cash":46.35,"id":444},{"account":"BM Core","date":"2026-04-01","type":"Deposit","symbol":null,"qty":null,"price":null,"total":null,"cash":-6000.0,"id":445},{"account":"BM Tech","date":"2026-04-01","type":"Deposit","symbol":null,"qty":null,"price":null,"total":null,"cash":-6000.0,"id":446},{"account":"BM Core","date":"2026-04-02","type":"Sell","symbol":"AGG","qty":0.076698,"price":99.22,"total":7.60997556,"cash":null,"id":447},{"account":"IRA","date":"2026-04-02","type":"Dividend","symbol":"MCK","qty":null,"price":null,"total":null,"cash":0.65,"id":448},{"account":"LO Invest","date":"2026-04-02","type":"Dividend","symbol":"MCK","qty":null,"price":null,"total":null,"cash":0.07,"id":449},{"account":"BM Core","date":"2026-04-02","type":"Sell","symbol":"STIP","qty":0.064497,"price":103.26,"total":6.65996022,"cash":null,"id":450},{"account":"BM Tech","date":"2026-04-02","type":"Buy","symbol":"VTEB","qty":2.432373,"price":49.98,"total":121.5700025,"cash":null,"id":451},{"account":"BM Core","date":"2026-04-02","type":"Fees","symbol":null,"qty":null,"price":null,"total":null,"cash":-29.32,"id":452},{"account":"BM Tech","date":"2026-04-02","type":"Fees","symbol":null,"qty":null,"price":null,"total":null,"cash":-29.63,"id":453},{"account":"LO Invest","date":"2026-04-05","type":"Cash","symbol":null,"qty":null,"price":null,"total":null,"cash":2.49,"id":454},{"account":"IRA","date":"2026-04-05","type":"Cash","symbol":null,"qty":null,"price":null,"total":null,"cash":659.04,"id":455},{"account":"BM Core","date":"2026-04-07","type":"Dividend","symbol":"BNDX","qty":null,"price":null,"total":null,"cash":4.64,"id":456},{"account":"BM Core","date":"2026-04-07","type":"Dividend","symbol":"VWOB","qty":null,"price":null,"total":null,"cash":8.45,"id":457},{"account":"BM Core","date":"2026-04-08","type":"Buy","symbol":"VTEB","qty":0.260446,"price":50.26,"total":13.09001596,"cash":null,"id":458},{"account":"BM Core","date":"2026-04-08","type":"Dividend","symbol":"AGG","qty":null,"price":null,"total":null,"cash":1.17,"id":459},{"account":"BM Core","date":"2026-04-08","type":"Dividend","symbol":"STIP","qty":null,"price":null,"total":null,"cash":0.49,"id":460},{"account":"BM Core","date":"2026-04-08","type":"Dividend","symbol":"MUB","qty":null,"price":null,"total":null,"cash":26.51,"id":461},{"account":"BM Core","date":"2026-04-09","type":"Buy","symbol":"VTEB","qty":0.561379,"price":50.18,"total":28.16999822,"cash":null,"id":462},{"account":"BM Tech","date":"2026-04-07","type":"Dividend","symbol":"BNDX","qty":null,"price":null,"total":null,"cash":4.67,"id":463},{"account":"BM Tech","date":"2026-04-07","type":"Dividend","symbol":"VWOB","qty":null,"price":null,"total":null,"cash":8.51,"id":464},{"account":"BM Tech","date":"2026-04-08","type":"Buy","symbol":"VTEB","qty":0.262236,"price":50.26,"total":13.17998136,"cash":null,"id":465},{"account":"BM Tech","date":"2026-04-08","type":"Dividend","symbol":"IAGG","qty":null,"price":null,"total":null,"cash":0.01,"id":466},{"account":"BM Tech","date":"2026-04-08","type":"Dividend","symbol":"AGG","qty":null,"price":null,"total":null,"cash":1.18,"id":467},{"account":"BM Tech","date":"2026-04-08","type":"Dividend","symbol":"STIP","qty":null,"price":null,"total":null,"cash":0.47,"id":468},{"account":"BM Tech","date":"2026-04-08","type":"Dividend","symbol":"MUB","qty":null,"price":null,"total":null,"cash":26.73,"id":469},{"account":"BM Tech","date":"2026-04-09","type":"Buy","symbol":"VTEB","qty":0.565763,"price":50.18,"total":28.38998734,"cash":null,"id":470}];
+const SYMBOL_KEYS = [{"ticker":"NYSE:CVE","category":"Energy","broad":"Individual Stock","name":"Cenovus Energy Inc"},{"ticker":"NASDAQ:AMD","category":"Technology","broad":"Individual Stock","name":"Advanced Micro Devices Inc"},{"ticker":"NYSE:O","category":"REIT","broad":"Individual Stock","name":"Realty Income Corp"},{"ticker":"NYSE:MCK","category":"Healthcare","broad":"Individual Stock","name":"McKesson Corp"},{"ticker":"NYSE:BIP","category":"Infrastructure","broad":"Individual Stock","name":"Brookfield Infrastructure Partners L.P."},{"ticker":"TIRTX","category":"US Corp / Muni Bond","broad":"Fixed Income","name":"Nuveen Large Cap Growth Fund A Class"},{"ticker":"VUG","category":"US Large-Cap Growth","broad":"Domestic Equity","name":"Vanguard Growth Index Fund ETF"},{"ticker":"QQQM","category":"US Large-Cap Growth","broad":"Domestic Equity","name":"Invesco NASDAQ 100 ETF"},{"ticker":"VOO","category":"US Large-Cap Blend","broad":"Domestic Equity","name":"Vanguard S&P 500 ETF"},{"ticker":"WGROX","category":"US Large-Cap Growth","broad":"Domestic Equity","name":"Wasatch Core Growth Fund"},{"ticker":"PRBLX","category":"US Large-Cap Blend","broad":"Domestic Equity","name":"Parnassus Core Equity Fund - Investor Shares"},{"ticker":"WILNX","category":"US Large-Cap Growth","broad":"Domestic Equity","name":"William Blair International Leaders Fund Class N Shares"},{"ticker":"SOFI","category":"Financials","broad":"Individual Stock","name":"SoFi Technologies Inc"},{"ticker":"PHT","category":"US Corp / Muni Bond","broad":"Fixed Income","name":"Haulotte Group SA"},{"ticker":"SFY","category":"US Large-Cap Blend","broad":"Domestic Equity","name":"SoFi Select 500 ETF"},{"ticker":"AZN","category":"Healthcare","broad":"Individual Stock","name":"AstraZeneca PLC (US)"},{"ticker":"NVDA","category":"Technology","broad":"Individual Stock","name":"NVIDIA Corp"},{"ticker":"FWD","category":"US Total Market","broad":"Domestic Equity","name":"AB Disruptors ETF"},{"ticker":"VEA","category":"Intl Developed Equity","broad":"International Equity","name":"Vanguard Tax Managed Fund FTSE Developed Markets ETF"},{"ticker":"STIP","category":"US TIPS / Inflation","broad":"Fixed Income","name":"iShares 0-5 Year TIPS Bond ETF"},{"ticker":"KOMP","category":"Thematic / Innovation","broad":"International Equity","name":"State Street SPDR S&P Kensho New Econ Comp ETF"},{"ticker":"AGG","category":"US Core Bond","broad":"Fixed Income","name":"iShares Core US Aggregate Bond ETF"},{"ticker":"BNDX","category":"Intl Bond","broad":"Fixed Income","name":"Vanguard Total International Bond Index Fund ETF"},{"ticker":"VWO","category":"Emerging Markets Equity","broad":"International Equity","name":"Vanguard Emerging Markets Stock Index Fund ETF"},{"ticker":"MUB","category":"US Municipal Bond","broad":"Fixed Income","name":"iShares National Muni Bond ETF"},{"ticker":"VWOB","category":"Intl Bond (EM)","broad":"Fixed Income","name":"Vanguard Emerging Markets Govt Bd Idx ETF"},{"ticker":"VTI","category":"US Total Market","broad":"Domestic Equity","name":"Vanguard Total Stock Market Index Fund ETF"},{"ticker":"SPYM","category":"US Large-Cap Blend","broad":"Domestic Equity","name":"State Street SPDR Portfolio S&P 500 ETF"},{"ticker":"SPMD","category":"US Mid-Cap Blend","broad":"Domestic Equity","name":"State Street SPDR Portfolio S&P 400 Mid Cap ETF"},{"ticker":"SPSM","category":"US Small-Cap Blend","broad":"Domestic Equity","name":"State Street SPDR Portfolio S&P 600 Small Cap ETF"},{"ticker":"IAGG","category":"Intl Bond","broad":"Fixed Income","name":"iShares Core International Aggregate Bond ETF"},{"ticker":"VO","category":"US Mid-Cap Blend","broad":"Domestic Equity","name":"Vanguard Mid-Cap Index Fund ETF"},{"ticker":"SCHA","category":"US Small-Cap Blend","broad":"Domestic Equity","name":"Schwab US Small-Cap ETF"},{"ticker":"VXUS","category":"Intl Total Market","broad":"International Equity","name":"Vanguard Total International Stock Index Fund ETF"},{"ticker":"AVUV","category":"US Small-Cap Value","broad":"Domestic Equity","name":"Avantis US Small Cap Value ETF"}];
+/* ===================== State & storage ===================== */
+const LS_TXNS = 'ledger_txns_v1';
+const LS_SETTINGS = 'ledger_settings_v1';
+const LS_QUOTES = 'ledger_quotes_v1';
+const LS_HISTORY = 'ledger_history_v1';
+
+const ACCOUNTS = ['IRA','LO Invest','BM Tech','BM Core'];
+const KEY_BY_SYMBOL = {};
+SYMBOL_KEYS.forEach(k => KEY_BY_SYMBOL[k.ticker] = k);
+
+function cleanSymbol(sym){
+  if(!sym) return sym;
+  return sym.includes(':') ? sym.split(':')[1] : sym;
+}
+
+function loadTxns(){
+  const raw = localStorage.getItem(LS_TXNS);
+  if(raw){ return JSON.parse(raw); }
+  const seeded = SEED_TXNS.map(t => ({...t}));
+  localStorage.setItem(LS_TXNS, JSON.stringify(seeded));
+  return seeded;
+}
+function saveTxns(txns){ localStorage.setItem(LS_TXNS, JSON.stringify(txns)); }
+
+function loadSettings(){
+  try{ return JSON.parse(localStorage.getItem(LS_SETTINGS)) || {}; }catch(e){ return {}; }
+}
+function saveSettings(s){ localStorage.setItem(LS_SETTINGS, JSON.stringify(s)); }
+
+function loadQuotes(){
+  try{ return JSON.parse(localStorage.getItem(LS_QUOTES)) || {}; }catch(e){ return {}; }
+}
+function saveQuotes(q){ localStorage.setItem(LS_QUOTES, JSON.stringify(q)); }
+
+function loadHistory(){
+  try{ return JSON.parse(localStorage.getItem(LS_HISTORY)) || []; }catch(e){ return []; }
+}
+function saveHistory(h){ localStorage.setItem(LS_HISTORY, JSON.stringify(h)); }
+
+let TXNS = loadTxns();
+let SETTINGS = loadSettings();
+let QUOTES = loadQuotes();
+let ACTIVE_ACCOUNT = 'All';
+let TXN_SHOW_LIMIT = 40;
+
+/* ===================== Google Sheet sync ===================== */
+const SHEET_FIELDS = ['id','account','date','type','symbol','qty','price','total','cash'];
+
+function sheetConfigured(){
+  return !!(SETTINGS.sheetUrl && SETTINGS.sheetToken);
+}
+
+function normalizeSheetTxn(raw){
+  const t = {};
+  SHEET_FIELDS.forEach(f=>{
+    let v = raw[f];
+    if(v === '' || v === undefined) v = null;
+    if(['id','qty','price','total','cash'].includes(f) && v !== null) v = Number(v);
+    t[f] = v;
+  });
+  return t;
+}
+
+async function fetchFromSheet(silent){
+  if(!sheetConfigured()) return false;
+  try{
+    const url = SETTINGS.sheetUrl + '?token=' + encodeURIComponent(SETTINGS.sheetToken);
+    const res = await fetch(url);
+    const data = await res.json();
+    if(data.error){ if(!silent) toast('Sheet error: ' + data.error); return false; }
+    const list = (data.transactions || []).map(normalizeSheetTxn).filter(t=>t.id!==null);
+    TXNS = list;
+    saveTxns(TXNS);
+    if(!silent) toast('Pulled ' + list.length + ' transactions from sheet');
+    return true;
+  }catch(e){
+    if(!silent) toast('Could not reach the sheet — check the URL and token');
+    return false;
+  }
+}
+
+async function pushToSheet(action, payload){
+  if(!sheetConfigured()) return false;
+  try{
+    const body = JSON.stringify({ action, token: SETTINGS.sheetToken, ...payload });
+    const res = await fetch(SETTINGS.sheetUrl, { method:'POST', body });
+    const data = await res.json();
+    if(data.error){ toast('Sync failed: ' + data.error); return false; }
+    return true;
+  }catch(e){
+    toast('Change saved on device, but sync to sheet failed');
+    return false;
+  }
+}
+
+async function pushAllToSheet(){
+  const status = document.getElementById('sheetSyncStatus');
+  status.textContent = 'Pushing ' + TXNS.length + ' transactions…';
+  const ok = await pushToSheet('replaceAll', { txns: TXNS });
+  status.textContent = ok ? ('Pushed ' + TXNS.length + ' transactions to the sheet ✓') : 'Push failed — check the Web App URL and token';
+}
+
+async function pullAllFromSheet(){
+  const status = document.getElementById('sheetSyncStatus');
+  status.textContent = 'Pulling latest…';
+  const ok = await fetchFromSheet(true);
+  status.textContent = ok ? 'Pulled latest from sheet ✓' : 'Pull failed — check the Web App URL and token';
+  if(ok) renderAll();
+}
+
+/* ===================== Computation ===================== */
+function fmtMoney(n){
+  if(n===null||n===undefined||isNaN(n)) return '—';
+  const neg = n < 0;
+  const v = Math.abs(n).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  return (neg?'-$':'$') + v;
+}
+function fmtPct(n){
+  if(n===null||n===undefined||isNaN(n)) return '—';
+  return (n>=0?'+':'') + (n*100).toFixed(1) + '%';
+}
+function fmtQty(n){
+  if(n===null||n===undefined) return '—';
+  return n.toLocaleString('en-US',{maximumFractionDigits:4});
+}
+
+function txnsForAccount(account){
+  if(account==='All') return TXNS;
+  return TXNS.filter(t=>t.account===account);
+}
+
+// Returns { positions: {symbol:{qty,cost}}, cash, deposits, depositsPlusBonus }
+function computeAccountState(account){
+  const txns = txnsForAccount(account).slice().sort((a,b)=> a.date.localeCompare(b.date) || a.id-b.id);
+  const positions = {};
+  let cash = 0, deposits = 0, depositsPlusBonus = 0, dividends = 0;
+  txns.forEach(t=>{
+    const type = t.type;
+    if(type==='Buy'){
+      const sym = t.symbol;
+      if(!positions[sym]) positions[sym] = {qty:0, cost:0};
+      positions[sym].qty += Number(t.qty)||0;
+      positions[sym].cost += Number(t.total)||0;
+      cash -= Number(t.total)||0;
+    } else if(type==='Sell'){
+      const sym = t.symbol;
+      if(!positions[sym]) positions[sym] = {qty:0, cost:0};
+      const pos = positions[sym];
+      const sellQty = Number(t.qty)||0;
+      if(pos.qty > 0){
+        const avgCost = pos.cost / pos.qty;
+        pos.cost -= avgCost * Math.min(sellQty,pos.qty);
+      }
+      pos.qty -= sellQty;
+      cash += Number(t.total)||0;
+    } else if(type==='Deposit'){
+      cash += Number(t.cash)||0; deposits += Number(t.cash)||0; depositsPlusBonus += Number(t.cash)||0;
+    } else if(type==='Bonus'){
+      cash += Number(t.cash)||0; depositsPlusBonus += Number(t.cash)||0;
+    } else if(type==='Dividend'){
+      cash += Number(t.cash)||0; dividends += Number(t.cash)||0;
+    } else if(type==='Fees' || type==='Cash' || type==='Cash sweep payment'){
+      cash += Number(t.cash)||0;
+    }
+  });
+  // drop ~0 qty dust
+  Object.keys(positions).forEach(s=>{ if(Math.abs(positions[s].qty) < 0.0001) delete positions[s]; });
+  return {positions, cash, deposits, depositsPlusBonus, dividends};
+}
+
+function allSymbols(){
+  const set = new Set();
+  TXNS.forEach(t=>{ if(t.symbol) set.add(t.symbol); });
+  return Array.from(set);
+}
+
+function priceFor(symbol){
+  const q = QUOTES[cleanSymbol(symbol)];
+  return q ? q.price : null;
+}
+
+function categoryFor(symbol){
+  const k = KEY_BY_SYMBOL[symbol] || KEY_BY_SYMBOL[cleanSymbol(symbol)];
+  return k ? k.broad : 'Uncategorized';
+}
+function nameFor(symbol){
+  const k = KEY_BY_SYMBOL[symbol] || KEY_BY_SYMBOL[cleanSymbol(symbol)];
+  return k ? k.name : symbol;
+}
+
+// Build combined holdings across an account filter, valued with live prices (fallback to cost)
+function buildHoldings(account){
+  const accounts = account==='All' ? ACCOUNTS : [account];
+  const combined = {}; // symbol -> {qty, cost}
+  accounts.forEach(acc=>{
+    const {positions} = computeAccountState(acc);
+    Object.entries(positions).forEach(([sym,pos])=>{
+      if(!combined[sym]) combined[sym] = {qty:0, cost:0};
+      combined[sym].qty += pos.qty;
+      combined[sym].cost += pos.cost;
+    });
+  });
+  const rows = Object.entries(combined).map(([sym,pos])=>{
+    const price = priceFor(sym);
+    const value = price!==null ? pos.qty*price : pos.cost; // fallback to cost basis if no live price
+    const gain = value - pos.cost;
+    const ret = pos.cost !== 0 ? gain/pos.cost : 0;
+    return {symbol:sym, qty:pos.qty, cost:pos.cost, price, value, gain, ret, hasLivePrice: price!==null};
+  });
+  rows.sort((a,b)=> b.value - a.value);
+  return rows;
+}
+
+function totalsForAccount(account){
+  const holdings = buildHoldings(account);
+  const accounts = account==='All' ? ACCOUNTS : [account];
+  let cash = 0, dividends=0;
+  accounts.forEach(acc=>{ const s = computeAccountState(acc); cash += s.cash; dividends += s.dividends; });
+  const investedValue = holdings.reduce((s,h)=>s+h.value,0);
+  const costBasis = holdings.reduce((s,h)=>s+h.cost,0);
+  const gain = investedValue - costBasis;
+  const ret = costBasis !== 0 ? gain/costBasis : 0;
+  return {holdings, cash, dividends, investedValue, costBasis, gain, ret, totalValue: investedValue + Math.max(cash,0)};
+}
+
+/* ===================== Rendering ===================== */
+function renderTabs(){
+  const wrap = document.getElementById('accountTabs');
+  wrap.innerHTML = '';
+  ['All',...ACCOUNTS].forEach(acc=>{
+    const b = document.createElement('button');
+    b.className = 'tab' + (acc===ACTIVE_ACCOUNT?' active':'');
+    b.textContent = acc;
+    b.onclick = ()=>{ ACTIVE_ACCOUNT = acc; renderAll(); };
+    wrap.appendChild(b);
+  });
+}
+
+function renderHero(){
+  const t = totalsForAccount(ACTIVE_ACCOUNT);
+  document.getElementById('heroValue').textContent = fmtMoney(t.totalValue);
+  const gainEl = document.getElementById('heroGain');
+  gainEl.textContent = fmtMoney(t.gain);
+  gainEl.className = 'hero-stat-value ' + (t.gain>=0?'pos':'neg');
+  const retEl = document.getElementById('heroReturn');
+  retEl.textContent = fmtPct(t.ret);
+  retEl.className = 'hero-stat-value ' + (t.ret>=0?'pos':'neg');
+  document.getElementById('heroCost').textContent = fmtMoney(t.costBasis);
+
+  const ts = SETTINGS.lastFetch;
+  document.getElementById('lastUpdated').textContent = ts ? ('Priced ' + timeAgo(ts)) : 'Live prices not loaded';
+}
+
+function timeAgo(ts){
+  const s = Math.floor((Date.now()-ts)/1000);
+  if(s<60) return 'just now';
+  if(s<3600) return Math.floor(s/60)+'m ago';
+  if(s<86400) return Math.floor(s/3600)+'h ago';
+  return Math.floor(s/86400)+'d ago';
+}
+
+function renderStatStrip(){
+  const t = totalsForAccount(ACTIVE_ACCOUNT);
+  const wrap = document.getElementById('statStrip');
+  const winners = t.holdings.filter(h=>h.gain>=0).length;
+  const losers = t.holdings.filter(h=>h.gain<0).length;
+  wrap.innerHTML = '';
+  const items = [
+    ['Cash Balance', fmtMoney(t.cash)],
+    ['Dividends Earned', fmtMoney(t.dividends)],
+    ['Active Positions', String(t.holdings.length)],
+    ['Winners / Losers', winners+' · '+losers],
+  ];
+  items.forEach(([l,v])=>{
+    const box = document.createElement('div');
+    box.className = 'stat-box';
+    box.innerHTML = `<div class="l">${l}</div><div class="v">${v}</div>`;
+    wrap.appendChild(box);
+  });
+}
+
+function renderHoldingsTable(){
+  const t = totalsForAccount(ACTIVE_ACCOUNT);
+  const body = document.getElementById('holdingsBody');
+  body.innerHTML = '';
+  t.holdings.forEach(h=>{
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="sym">${h.symbol}${h.hasLivePrice?'':' <span class="hint" title="No live price — showing cost basis">•</span>'}</td>
+      <td>${fmtQty(h.qty)}</td>
+      <td>${h.price!==null?fmtMoney(h.price):'—'}</td>
+      <td>${fmtMoney(h.value)}</td>
+      <td>${fmtMoney(h.cost)}</td>
+      <td class="${h.gain>=0?'pos':'neg'}" style="color:${h.gain>=0?'var(--gain)':'var(--loss)'}">${fmtMoney(h.gain)}</td>
+      <td class="${h.ret>=0?'pos':'neg'}" style="color:${h.ret>=0?'var(--gain)':'var(--loss)'}">${fmtPct(h.ret)}</td>
+    `;
+    body.appendChild(tr);
+  });
+  document.getElementById('holdingsCount').textContent = t.holdings.length + ' position' + (t.holdings.length===1?'':'s');
+}
+
+function filteredTxns(){
+  const q = document.getElementById('txnSearch').value.trim().toUpperCase();
+  const type = document.getElementById('txnTypeFilter').value;
+  let list = txnsForAccount(ACTIVE_ACCOUNT).slice().sort((a,b)=> b.date.localeCompare(a.date) || b.id-a.id);
+  if(type!=='All') list = list.filter(t=>t.type===type);
+  if(q) list = list.filter(t=> (t.symbol||'').toUpperCase().includes(q));
+  return list;
+}
+
+function chipClass(type){
+  if(type==='Buy'||type==='Dividend'||type==='Deposit'||type==='Bonus') return 'chip-buy';
+  if(type==='Sell'||type==='Fees') return 'chip-sell';
+  return 'chip-cash';
+}
+
+function renderTxnTable(){
+  const list = filteredTxns();
+  document.getElementById('txnCount').textContent = list.length + ' entries';
+  const body = document.getElementById('txnBody');
+  body.innerHTML = '';
+  list.slice(0, TXN_SHOW_LIMIT).forEach(t=>{
+    const tr = document.createElement('tr');
+    tr.className = 'row-edit';
+    const amount = t.symbol ? t.total : t.cash;
+    tr.innerHTML = `
+      <td>${t.date}</td>
+      <td>${t.account}</td>
+      <td><span class="chip ${chipClass(t.type)}">${t.type}</span></td>
+      <td class="sym">${t.symbol||'—'}</td>
+      <td>${t.qty!==null&&t.qty!==undefined?fmtQty(t.qty):'—'}</td>
+      <td>${t.price!==null&&t.price!==undefined?fmtMoney(t.price):'—'}</td>
+      <td>${amount!==null&&amount!==undefined?fmtMoney(amount):'—'}</td>
+      <td>›</td>
+    `;
+    tr.onclick = ()=> openTxnModal(t);
+    body.appendChild(tr);
+  });
+  document.getElementById('loadMoreBtn').style.display = list.length > TXN_SHOW_LIMIT ? 'block' : 'none';
+}
+
+/* ===================== Ticker tape ===================== */
+function renderTicker(){
+  const track = document.getElementById('tickerTrack');
+  const symbols = allSymbols();
+  if(symbols.length===0){ track.innerHTML=''; return; }
+  let html = '';
+  const doubled = symbols.concat(symbols); // loop smoothly
+  doubled.forEach(sym=>{
+    const q = QUOTES[cleanSymbol(sym)];
+    const price = q ? fmtMoney(q.price) : '—';
+    const chg = q && q.pct!==undefined && q.pct!==null ? q.pct : null;
+    const cls = chg===null ? '' : (chg>=0?'tick-up':'tick-down');
+    const arrow = chg===null ? '' : (chg>=0?'▲':'▼');
+    const chgTxt = chg===null ? '' : ` <span class="${cls}">${arrow} ${Math.abs(chg).toFixed(2)}%</span>`;
+    html += `<span class="tick-item"><b>${cleanSymbol(sym)}</b> ${price}${chgTxt}</span>`;
+  });
+  track.innerHTML = html;
+}
+
+/* ===================== Charts ===================== */
+let chartAlloc, chartAcct, chartHoldings, chartHistory;
+const PALETTE = ['#b8862f','#3f7c58','#264a3f','#a8452f','#7c9a92','#d9b45c','#5c6a63','#9bb89f'];
+
+function renderCharts(){
+  renderAllocChart();
+  renderAcctChart();
+  renderHoldingsChart();
+  renderHistoryChart();
+}
+
+function renderAllocChart(){
+  const t = totalsForAccount(ACTIVE_ACCOUNT);
+  const byCategory = {};
+  t.holdings.forEach(h=>{
+    const cat = categoryFor(h.symbol);
+    byCategory[cat] = (byCategory[cat]||0) + h.value;
+  });
+  const labels = Object.keys(byCategory);
+  const data = Object.values(byCategory);
+  const ctx = document.getElementById('allocChart');
+  if(chartAlloc) chartAlloc.destroy();
+  chartAlloc = new Chart(ctx, {
+    type:'doughnut',
+    data:{ labels, datasets:[{ data, backgroundColor: PALETTE, borderColor:'#fffdf8', borderWidth:2 }] },
+    options:{ plugins:{ legend:{ position:'bottom', labels:{ boxWidth:10, font:{size:11, family:"'IBM Plex Sans',sans-serif"} } } }, cutout:'62%' }
+  });
+}
+
+function renderAcctChart(){
+  const labels = ACCOUNTS;
+  const values = ACCOUNTS.map(a=> totalsForAccount(a).totalValue);
+  const ctx = document.getElementById('acctChart');
+  if(chartAcct) chartAcct.destroy();
+  chartAcct = new Chart(ctx, {
+    type:'bar',
+    data:{ labels, datasets:[{ data: values, backgroundColor:'#264a3f', borderRadius:6, maxBarThickness:36 }] },
+    options:{ plugins:{legend:{display:false}}, scales:{ y:{ ticks:{ callback:v=>'$'+(v/1000).toFixed(0)+'k' }, grid:{color:'#efe8d5'} }, x:{ grid:{display:false}, ticks:{font:{size:10.5}} } } }
+  });
+}
+
+function renderHoldingsChart(){
+  const t = totalsForAccount(ACTIVE_ACCOUNT);
+  const top = t.holdings.slice(0,8);
+  const ctx = document.getElementById('holdingsChart');
+  if(chartHoldings) chartHoldings.destroy();
+  chartHoldings = new Chart(ctx, {
+    type:'bar',
+    data:{ labels: top.map(h=>h.symbol), datasets:[{ data: top.map(h=>h.value), backgroundColor:'#b8862f', borderRadius:6, maxBarThickness:28 }] },
+    options:{ indexAxis:'y', plugins:{legend:{display:false}}, scales:{ x:{ ticks:{ callback:v=>'$'+(v/1000).toFixed(0)+'k' }, grid:{color:'#efe8d5'} }, y:{ grid:{display:false} } } }
+  });
+}
+
+function renderHistoryChart(){
+  const hist = loadHistory().filter(h=>h.account===ACTIVE_ACCOUNT);
+  const ctx = document.getElementById('historyChart');
+  if(chartHistory) chartHistory.destroy();
+  if(hist.length < 2){
+    ctx.parentElement.querySelector('.hint').textContent = 'Tracked from each visit — check back after a few refreshes to see a trend';
+  } else {
+    ctx.parentElement.querySelector('.hint').textContent = 'Tracked from each visit — builds over time';
+  }
+  chartHistory = new Chart(ctx, {
+    type:'line',
+    data:{
+      labels: hist.map(h=>h.date),
+      datasets:[{ data: hist.map(h=>h.value), borderColor:'#b8862f', backgroundColor:'rgba(184,134,47,0.12)', fill:true, tension:0.3, pointRadius:3 }]
+    },
+    options:{ plugins:{legend:{display:false}}, scales:{ y:{ ticks:{ callback:v=>'$'+(v/1000).toFixed(0)+'k' }, grid:{color:'#efe8d5'} }, x:{ grid:{display:false}, ticks:{font:{size:10.5}} } } }
+  });
+}
+
+/* ===================== Live prices (Twelve Data) ===================== */
+async function fetchQuotes(showToast){
+  const key = SETTINGS.apiKey;
+  if(!key){
+    if(showToast) toast('Add a free Twelve Data API key in Settings to load live prices');
+    openSettings();
+    return;
+  }
+  const symbols = Array.from(new Set(allSymbols().map(cleanSymbol)));
+  if(symbols.length===0) return;
+  toast('Fetching live prices…');
+  const chunkSize = 7;
+  const chunks = [];
+  for(let i=0;i<symbols.length;i+=chunkSize) chunks.push(symbols.slice(i,i+chunkSize));
+  let success = 0, failed = 0;
+  for(const chunk of chunks){
+    try{
+      const url = `https://api.twelvedata.com/quote?symbol=${chunk.join(',')}&apikey=${encodeURIComponent(key)}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      const entries = chunk.length===1 ? {[chunk[0]]: data} : data;
+      chunk.forEach(sym=>{
+        const q = entries[sym];
+        if(q && q.close && !q.status){
+          QUOTES[sym] = { price: parseFloat(q.close), pct: q.percent_change!==undefined? parseFloat(q.percent_change): null, ts: Date.now() };
+          success++;
+        } else {
+          failed++;
+        }
+      });
+    }catch(e){ failed += chunk.length; }
+    await new Promise(r=>setTimeout(r, 900));
+  }
+  saveQuotes(QUOTES);
+  SETTINGS.lastFetch = Date.now();
+  saveSettings(SETTINGS);
+  recordHistorySnapshot();
+  renderAll();
+  if(showToast){
+    if(success>0) toast(`Priced ${success} holding${success===1?'':'s'}` + (failed?`, ${failed} failed`:''));
+    else toast('Could not fetch prices — check your API key');
+  }
+}
+
+function recordHistorySnapshot(){
+  const today = new Date().toISOString().slice(0,10);
+  const hist = loadHistory();
+  ['All',...ACCOUNTS].forEach(acc=>{
+    const t = totalsForAccount(acc);
+    const idx = hist.findIndex(h=>h.account===acc && h.date===today);
+    const entry = {account:acc, date:today, value: t.totalValue};
+    if(idx>=0) hist[idx] = entry; else hist.push(entry);
+  });
+  saveHistory(hist);
+}
+
+/* ===================== Transaction modal ===================== */
+const overlay = document.getElementById('txnModalOverlay');
+function openTxnModal(txn){
+  document.getElementById('txnModalTitle').textContent = txn ? 'Edit Transaction' : 'Add Transaction';
+  document.getElementById('txnId').value = txn ? txn.id : '';
+  const accSel = document.getElementById('fAccount');
+  accSel.innerHTML = ACCOUNTS.map(a=>`<option ${txn&&txn.account===a?'selected':''}>${a}</option>`).join('');
+  if(!txn && ACTIVE_ACCOUNT!=='All') accSel.value = ACTIVE_ACCOUNT;
+  document.getElementById('fDate').value = txn ? txn.date : new Date().toISOString().slice(0,10);
+  document.getElementById('fType').value = txn ? txn.type : 'Buy';
+  document.getElementById('fSymbol').value = txn ? (txn.symbol||'') : '';
+  document.getElementById('fQty').value = txn && txn.qty!==null && txn.qty!==undefined ? txn.qty : '';
+  document.getElementById('fPrice').value = txn && txn.price!==null && txn.price!==undefined ? txn.price : '';
+  document.getElementById('fCash').value = txn && txn.cash!==null && txn.cash!==undefined ? txn.cash : '';
+  document.getElementById('deleteTxnBtn').style.display = txn ? 'block' : 'none';
+  toggleFieldSets();
+  overlay.classList.add('open');
+}
+function closeTxnModal(){ overlay.classList.remove('open'); }
+function toggleFieldSets(){
+  const type = document.getElementById('fType').value;
+  const isTrade = type==='Buy' || type==='Sell';
+  document.getElementById('tradeFields').style.display = isTrade ? 'block' : 'none';
+  document.getElementById('cashFields').style.display = isTrade ? 'none' : 'block';
+}
+document.getElementById('fType').addEventListener('change', toggleFieldSets);
+document.getElementById('addTxnFab').onclick = ()=> openTxnModal(null);
+document.getElementById('txnModalClose').onclick = closeTxnModal;
+overlay.addEventListener('click', e=>{ if(e.target===overlay) closeTxnModal(); });
+
+document.getElementById('txnForm').addEventListener('submit', e=>{
+  e.preventDefault();
+  const idRaw = document.getElementById('txnId').value;
+  const type = document.getElementById('fType').value;
+  const isTrade = type==='Buy' || type==='Sell';
+  const qty = isTrade ? parseFloat(document.getElementById('fQty').value)||0 : null;
+  const price = isTrade ? parseFloat(document.getElementById('fPrice').value)||0 : null;
+  const cashVal = !isTrade ? (parseFloat(document.getElementById('fCash').value)||0) : null;
+  const rec = {
+    account: document.getElementById('fAccount').value,
+    date: document.getElementById('fDate').value,
+    type,
+    symbol: isTrade ? document.getElementById('fSymbol').value.toUpperCase().trim() : null,
+    qty,
+    price,
+    total: isTrade ? (qty*price) : null,
+    cash: !isTrade ? cashVal : null,
+  };
+  let savedTxn;
+  if(idRaw){
+    const id = Number(idRaw);
+    const idx = TXNS.findIndex(t=>t.id===id);
+    if(idx>=0) TXNS[idx] = {...TXNS[idx], ...rec};
+    savedTxn = TXNS[idx];
+    toast('Transaction updated');
+  } else {
+    const nextId = TXNS.reduce((m,t)=>Math.max(m,t.id),0)+1;
+    savedTxn = {id:nextId, ...rec};
+    TXNS.push(savedTxn);
+    toast('Transaction added');
+  }
+  saveTxns(TXNS);
+  closeTxnModal();
+  renderAll();
+  if(sheetConfigured()) pushToSheet(idRaw ? 'update' : 'add', { txn: savedTxn });
+});
+
+document.getElementById('deleteTxnBtn').onclick = ()=>{
+  const id = Number(document.getElementById('txnId').value);
+  if(!confirm('Delete this transaction?')) return;
+  TXNS = TXNS.filter(t=>t.id!==id);
+  saveTxns(TXNS);
+  closeTxnModal();
+  renderAll();
+  toast('Transaction deleted');
+  if(sheetConfigured()) pushToSheet('delete', { id });
+};
+
+/* ===================== Settings modal ===================== */
+const settingsOverlay = document.getElementById('settingsModalOverlay');
+function openSettings(){
+  document.getElementById('apiKeyInput').value = SETTINGS.apiKey || '';
+  document.getElementById('sheetUrlInput').value = SETTINGS.sheetUrl || '';
+  document.getElementById('sheetTokenInput').value = SETTINGS.sheetToken || '';
+  document.getElementById('sheetSyncActions').style.display = sheetConfigured() ? 'block' : 'none';
+  document.getElementById('sheetSyncStatus').textContent = '';
+  settingsOverlay.classList.add('open');
+}
+document.getElementById('saveSheetBtn').onclick = async ()=>{
+  SETTINGS.sheetUrl = document.getElementById('sheetUrlInput').value.trim();
+  SETTINGS.sheetToken = document.getElementById('sheetTokenInput').value.trim();
+  saveSettings(SETTINGS);
+  if(!sheetConfigured()){
+    document.getElementById('sheetSyncActions').style.display = 'none';
+    toast('Sync disconnected');
+    return;
+  }
+  document.getElementById('sheetSyncActions').style.display = 'block';
+  const status = document.getElementById('sheetSyncStatus');
+  status.textContent = 'Connecting…';
+  const ok = await fetchFromSheet(true);
+  if(ok){
+    status.textContent = 'Connected ✓ — pulled ' + TXNS.length + ' transactions from the sheet';
+    renderAll();
+  } else {
+    status.textContent = 'Could not connect. Double check the Web App URL and token, or use "Push all local transactions to sheet" if the sheet is empty.';
+  }
+};
+document.getElementById('pushAllBtn').onclick = pushAllToSheet;
+document.getElementById('pullAllBtn').onclick = pullAllFromSheet;
+document.getElementById('settingsBtn').onclick = openSettings;
+document.getElementById('settingsModalClose').onclick = ()=> settingsOverlay.classList.remove('open');
+settingsOverlay.addEventListener('click', e=>{ if(e.target===settingsOverlay) settingsOverlay.classList.remove('open'); });
+document.getElementById('saveApiKeyBtn').onclick = ()=>{
+  SETTINGS.apiKey = document.getElementById('apiKeyInput').value.trim();
+  saveSettings(SETTINGS);
+  settingsOverlay.classList.remove('open');
+  toast('API key saved');
+  fetchQuotes(true);
+};
+document.getElementById('resetDataBtn').onclick = ()=>{
+  if(!confirm('This will erase any changes you made and restore the original 470 transactions. Continue?')) return;
+  localStorage.removeItem(LS_TXNS);
+  localStorage.removeItem(LS_HISTORY);
+  TXNS = loadTxns();
+  settingsOverlay.classList.remove('open');
+  renderAll();
+  toast('Data reset');
+};
+
+/* ===================== Misc UI ===================== */
+document.getElementById('refreshBtn').onclick = ()=> fetchQuotes(true);
+document.getElementById('txnSearch').addEventListener('input', renderTxnTable);
+document.getElementById('txnTypeFilter').addEventListener('change', renderTxnTable);
+document.getElementById('loadMoreBtn').addEventListener('click', ()=>{ TXN_SHOW_LIMIT += 40; renderTxnTable(); });
+
+let toastTimer;
+function toast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> el.classList.remove('show'), 2600);
+}
+
+/* ===================== Init ===================== */
+function renderAll(){
+  renderTabs();
+  renderHero();
+  renderStatStrip();
+  renderHoldingsTable();
+  renderTxnTable();
+  renderCharts();
+  renderTicker();
+}
+
+renderAll();
+(async ()=>{
+  if(sheetConfigured()){
+    const ok = await fetchFromSheet(true);
+    if(ok) renderAll();
+  }
+  if(SETTINGS.apiKey){
+    fetchQuotes(false);
+  } else {
+    setTimeout(()=>{ toast('Add a free API key in Settings to load live prices'); }, 900);
+  }
+})();
+
+</script>
+</body>
+</html>

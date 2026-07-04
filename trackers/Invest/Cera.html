@@ -3,29 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Ledger — Portfolio Tracker</title>
+<title>Cera — Portfolio Tracker</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMTAwIDEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8IS0tIGZyaWxsIGJhc2UgLS0+CiAgPGNpcmNsZSBjeD0iNTAiIGN5PSI1NCIgcj0iMzQiIGZpbGw9IiMxRjVDNTUiLz4KICA8cG9seWdvbiBwb2ludHM9IjE2LjQsNDguNyA5LjYsMzkuMyAyMC45LDM2LjUiIGZpbGw9IiMxRjVDNTUiLz48cG9seWdvbiBwb2ludHM9IjIwLjMsMzcuNSAxNy4xLDI2LjQgMjguNiwyNy42IiBmaWxsPSIjMUY1QzU1Ii8+PHBvbHlnb24gcG9pbnRzPSIyNy43LDI4LjMgMjguNSwxNi44IDM4LjksMjEuOSIgZmlsbD0iIzFGNUM1NSIvPjxwb2x5Z29uIHBvaW50cz0iMzcuOCwyMi4zIDQyLjUsMTEuNyA1MC42LDIwLjAiIGZpbGw9IiMxRjVDNTUiLz48cG9seWdvbiBwb2ludHM9IjQ5LjQsMjAuMCA1Ny41LDExLjcgNjIuMiwyMi4zIiBmaWxsPSIjMUY1QzU1Ii8+PHBvbHlnb24gcG9pbnRzPSI2MS4xLDIxLjkgNzEuNSwxNi44IDcyLjMsMjguMyIgZmlsbD0iIzFGNUM1NSIvPjxwb2x5Z29uIHBvaW50cz0iNzEuNCwyNy42IDgyLjksMjYuNCA3OS43LDM3LjUiIGZpbGw9IiMxRjVDNTUiLz48cG9seWdvbiBwb2ludHM9Ijc5LjEsMzYuNSA5MC40LDM5LjMgODMuNiw0OC43IiBmaWxsPSIjMUY1QzU1Ii8+CiAgPCEtLSBoZWFkIC0tPgogIDxlbGxpcHNlIGN4PSI0NiIgY3k9IjU2IiByeD0iMjQiIHJ5PSIyMCIgZmlsbD0iIzJFQzRCNiIvPgogIDwhLS0gc25vdXQgLS0+CiAgPGVsbGlwc2UgY3g9IjIwIiBjeT0iNjIiIHJ4PSIxMyIgcnk9IjEwIiBmaWxsPSIjMkVDNEI2Ii8+CiAgPCEtLSBicm93IGhvcm5zIC0tPgogIDxwb2x5Z29uIHBvaW50cz0iMzQsMzggMzAsMTYgNDIsMzYiIGZpbGw9IiNGRkMxNDUiLz4KICA8cG9seWdvbiBwb2ludHM9IjU2LDM4IDYwLDE2IDQ4LDM2IiBmaWxsPSIjRkZDMTQ1Ii8+CiAgPCEtLSBub3NlIGhvcm4gLS0+CiAgPHBvbHlnb24gcG9pbnRzPSIxNCw1NiA0LDUyIDE2LDY2IiBmaWxsPSIjRkZDMTQ1Ii8+CiAgPCEtLSBleWUgLS0+CiAgPGNpcmNsZSBjeD0iNDIiIGN5PSI1MCIgcj0iNCIgZmlsbD0iIzEyM0MzOSIvPgogIDwhLS0gbm9zdHJpbCAtLT4KICA8Y2lyY2xlIGN4PSIxMiIgY3k9IjYzIiByPSIyIiBmaWxsPSIjMTIzQzM5Ii8+CiAgPCEtLSBjaGVlayBibHVzaCAtLT4KICA8ZWxsaXBzZSBjeD0iNTIiIGN5PSI2NCIgcng9IjYiIHJ5PSI0IiBmaWxsPSIjRkY2QjRBIiBvcGFjaXR5PSIwLjU1Ii8+Cjwvc3ZnPg==">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
 
 :root{
-  --ink:#12241f;
-  --ink-soft:#264a3f;
-  --parchment:#faf6ec;
-  --parchment-dim:#f1ead8;
-  --card:#fffdf8;
-  --line:#e4dcc6;
-  --brass:#b8862f;
-  --brass-soft:#e7cf9c;
-  --gain:#3f7c58;
-  --gain-bg:#e7f1e9;
-  --loss:#a8452f;
-  --loss-bg:#f6e6e0;
-  --text:#1c2b26;
+  --ink:#123C39;
+  --ink-soft:#1F5C55;
+  --parchment:#FFFBF2;
+  --parchment-dim:#FFF3DC;
+  --card:#FFFFFF;
+  --line:#F0E4C8;
+  --brass:#FF6B4A;
+  --brass-soft:#FFD8CC;
+  --turquoise:#2EC4B6;
+  --yellow:#FFC145;
+  --gain:#2E8B57;
+  --gain-bg:#E3F5EA;
+  --loss:#E15554;
+  --loss-bg:#FDEAEA;
+  --text:#17302c;
   --text-dim:#5c6a63;
-  --shadow: 0 1px 2px rgba(18,36,31,0.06), 0 6px 20px rgba(18,36,31,0.06);
-  --radius: 14px;
+  --shadow: 0 1px 2px rgba(18,36,31,0.08), 0 6px 20px rgba(18,36,31,0.08);
+  --radius: 16px;
   font-family:'IBM Plex Sans',sans-serif;
 }
 *{box-sizing:border-box;}
@@ -55,10 +58,10 @@ a{color:var(--brass);}
 }
 .brand{display:flex; align-items:center; gap:10px;}
 .brand-mark{
-  font-family:'Fraunces',serif; font-size:26px; color:var(--brass-soft);
-  width:36px;height:36px;border:1.5px solid var(--brass-soft);border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
+  width:40px;height:40px;border:1.5px solid var(--brass-soft);border-radius:50%;
+  display:flex;align-items:center;justify-content:center; background:var(--parchment); overflow:hidden;
 }
+.brand-mark svg{ width:34px; height:34px; }
 .brand-name{font-family:'Fraunces',serif; font-size:19px; line-height:1.1; font-weight:600;}
 .brand-sub{font-size:11px; color:#b9c9c0; letter-spacing:.04em; text-transform:uppercase;}
 .header-actions{display:flex; gap:6px;}
@@ -76,7 +79,7 @@ main{max-width:760px; margin:0 auto; padding:16px;}
 .card-head{display:flex; align-items:baseline; justify-content:space-between; margin-bottom:12px; gap:8px; flex-wrap:wrap;}
 .hint{font-size:12px; color:var(--text-dim);}
 
-.hero{background:linear-gradient(155deg, #16302a, #12241f); color:var(--parchment); border:none;}
+.hero{background:linear-gradient(155deg, #1F5C55, #123C39 60%); color:var(--parchment); border:none;}
 .hero-top{display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;}
 .hero-label{font-size:12px; letter-spacing:.06em; text-transform:uppercase; color:#a9bdb3;}
 .hero-updated{font-size:11px; color:#8fa89c; font-family:'IBM Plex Mono',monospace;}
@@ -182,9 +185,22 @@ tr:last-child td{border-bottom:none;}
 
 <header class="app-header">
   <div class="brand">
-    <span class="brand-mark">§</span>
+    <span class="brand-mark">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="54" r="34" fill="#1F5C55"/>
+        <polygon points="16.4,48.7 9.6,39.3 20.9,36.5" fill="#1F5C55"/><polygon points="20.3,37.5 17.1,26.4 28.6,27.6" fill="#1F5C55"/><polygon points="27.7,28.3 28.5,16.8 38.9,21.9" fill="#1F5C55"/><polygon points="37.8,22.3 42.5,11.7 50.6,20.0" fill="#1F5C55"/><polygon points="49.4,20.0 57.5,11.7 62.2,22.3" fill="#1F5C55"/><polygon points="61.1,21.9 71.5,16.8 72.3,28.3" fill="#1F5C55"/><polygon points="71.4,27.6 82.9,26.4 79.7,37.5" fill="#1F5C55"/><polygon points="79.1,36.5 90.4,39.3 83.6,48.7" fill="#1F5C55"/>
+        <ellipse cx="46" cy="56" rx="24" ry="20" fill="#2EC4B6"/>
+        <ellipse cx="20" cy="62" rx="13" ry="10" fill="#2EC4B6"/>
+        <polygon points="34,38 30,16 42,36" fill="#FFC145"/>
+        <polygon points="56,38 60,16 48,36" fill="#FFC145"/>
+        <polygon points="14,56 4,52 16,66" fill="#FFC145"/>
+        <circle cx="42" cy="50" r="4" fill="#123C39"/>
+        <circle cx="12" cy="63" r="2" fill="#123C39"/>
+        <ellipse cx="52" cy="64" rx="6" ry="4" fill="#FF6B4A" opacity="0.55"/>
+      </svg>
+    </span>
     <div>
-      <div class="brand-name">Ledger</div>
+      <div class="brand-name">Cera</div>
       <div class="brand-sub">Portfolio Tracker</div>
     </div>
   </div>
@@ -300,7 +316,7 @@ tr:last-child td{border-bottom:none;}
       <h3 id="txnModalTitle">Add Transaction</h3>
       <button class="icon-btn" id="txnModalClose">×</button>
     </div>
-    <form id="txnForm">
+    <form id="txnForm" action="javascript:void(0);" onsubmit="return false;">
       <input type="hidden" id="txnId">
       <label>Account
         <select id="fAccount" required></select>
@@ -448,29 +464,67 @@ async function fetchFromSheet(silent){
   try{
     const url = SETTINGS.sheetUrl + '?token=' + encodeURIComponent(SETTINGS.sheetToken);
     const res = await fetch(url);
-    const data = await res.json();
-    if(data.error){ if(!silent) toast('Sheet error: ' + data.error); return false; }
+    const text = await res.text();
+    let data;
+    try{ data = JSON.parse(text); }
+    catch(parseErr){
+      const msg = 'Sheet returned non-JSON (HTTP ' + res.status + '). This usually means the Web App URL is wrong, the deployment needs redeploying, or access isn\'t set to "Anyone".';
+      if(!silent) toast(msg);
+      console.error('Ledger sync (GET) raw response:', text.slice(0,500));
+      lastSyncError = msg;
+      return false;
+    }
+    if(data.error){
+      const msg = 'Sheet error: ' + data.error + (data.error==='unauthorized' ? ' — token mismatch between the app and the script' : '');
+      if(!silent) toast(msg);
+      lastSyncError = msg;
+      return false;
+    }
     const list = (data.transactions || []).map(normalizeSheetTxn).filter(t=>t.id!==null);
     TXNS = list;
     saveTxns(TXNS);
     if(!silent) toast('Pulled ' + list.length + ' transactions from sheet');
+    lastSyncError = null;
     return true;
   }catch(e){
-    if(!silent) toast('Could not reach the sheet — check the URL and token');
+    const msg = 'Could not reach the sheet — network error or blocked request (' + e.message + ')';
+    if(!silent) toast(msg);
+    console.error('Ledger sync (GET) failed:', e);
+    lastSyncError = msg;
     return false;
   }
 }
+
+let lastSyncError = null;
 
 async function pushToSheet(action, payload){
   if(!sheetConfigured()) return false;
   try{
     const body = JSON.stringify({ action, token: SETTINGS.sheetToken, ...payload });
     const res = await fetch(SETTINGS.sheetUrl, { method:'POST', body });
-    const data = await res.json();
-    if(data.error){ toast('Sync failed: ' + data.error); return false; }
+    const text = await res.text();
+    let data;
+    try{ data = JSON.parse(text); }
+    catch(parseErr){
+      const msg = 'Sheet returned non-JSON (HTTP ' + res.status + '). Check the deployment is redeployed and access is "Anyone".';
+      toast(msg);
+      console.error('Ledger sync (POST) raw response:', text.slice(0,500));
+      lastSyncError = msg;
+      return false;
+    }
+    if(data.error){
+      const msg = 'Sync failed: ' + data.error + (data.error==='unauthorized' ? ' — token mismatch between the app and the script' : '');
+      toast(msg);
+      lastSyncError = msg;
+      return false;
+    }
+    lastSyncError = null;
     return true;
   }catch(e){
-    toast('Change saved on device, but sync to sheet failed');
+    const msg = 'Change saved on device, but sync to sheet failed (' + e.message + ')';
+    toast(msg);
+    console.error('Ledger sync (POST) failed:', e);
+    lastSyncError = msg;
     return false;
   }
 }
@@ -479,14 +533,14 @@ async function pushAllToSheet(){
   const status = document.getElementById('sheetSyncStatus');
   status.textContent = 'Pushing ' + TXNS.length + ' transactions…';
   const ok = await pushToSheet('replaceAll', { txns: TXNS });
-  status.textContent = ok ? ('Pushed ' + TXNS.length + ' transactions to the sheet ✓') : 'Push failed — check the Web App URL and token';
+  status.textContent = ok ? ('Pushed ' + TXNS.length + ' transactions to the sheet ✓') : (lastSyncError || 'Push failed — check the Web App URL and token');
 }
 
 async function pullAllFromSheet(){
   const status = document.getElementById('sheetSyncStatus');
   status.textContent = 'Pulling latest…';
   const ok = await fetchFromSheet(true);
-  status.textContent = ok ? 'Pulled latest from sheet ✓' : 'Pull failed — check the Web App URL and token';
+  status.textContent = ok ? 'Pulled latest from sheet ✓' : (lastSyncError || 'Pull failed — check the Web App URL and token');
   if(ok) renderAll();
 }
 
@@ -742,7 +796,7 @@ function renderTicker(){
 
 /* ===================== Charts ===================== */
 let chartAlloc, chartAcct, chartHoldings, chartHistory;
-const PALETTE = ['#b8862f','#3f7c58','#264a3f','#a8452f','#7c9a92','#d9b45c','#5c6a63','#9bb89f'];
+const PALETTE = ['#FF6B4A','#2EC4B6','#FFC145','#123C39','#8E44AD','#3F7CAC','#E15554','#2E8B57'];
 
 function renderCharts(){
   renderAllocChart();
@@ -776,7 +830,7 @@ function renderAcctChart(){
   if(chartAcct) chartAcct.destroy();
   chartAcct = new Chart(ctx, {
     type:'bar',
-    data:{ labels, datasets:[{ data: values, backgroundColor:'#264a3f', borderRadius:6, maxBarThickness:36 }] },
+    data:{ labels, datasets:[{ data: values, backgroundColor:'#2EC4B6', borderRadius:8, maxBarThickness:36 }] },
     options:{ plugins:{legend:{display:false}}, scales:{ y:{ ticks:{ callback:v=>'$'+(v/1000).toFixed(0)+'k' }, grid:{color:'#efe8d5'} }, x:{ grid:{display:false}, ticks:{font:{size:10.5}} } } }
   });
 }
@@ -788,7 +842,7 @@ function renderHoldingsChart(){
   if(chartHoldings) chartHoldings.destroy();
   chartHoldings = new Chart(ctx, {
     type:'bar',
-    data:{ labels: top.map(h=>h.symbol), datasets:[{ data: top.map(h=>h.value), backgroundColor:'#b8862f', borderRadius:6, maxBarThickness:28 }] },
+    data:{ labels: top.map(h=>h.symbol), datasets:[{ data: top.map(h=>h.value), backgroundColor:'#FF6B4A', borderRadius:8, maxBarThickness:28 }] },
     options:{ indexAxis:'y', plugins:{legend:{display:false}}, scales:{ x:{ ticks:{ callback:v=>'$'+(v/1000).toFixed(0)+'k' }, grid:{color:'#efe8d5'} }, y:{ grid:{display:false} } } }
   });
 }
@@ -806,7 +860,7 @@ function renderHistoryChart(){
     type:'line',
     data:{
       labels: hist.map(h=>h.date),
-      datasets:[{ data: hist.map(h=>h.value), borderColor:'#b8862f', backgroundColor:'rgba(184,134,47,0.12)', fill:true, tension:0.3, pointRadius:3 }]
+      datasets:[{ data: hist.map(h=>h.value), borderColor:'#2EC4B6', backgroundColor:'rgba(46,196,182,0.14)', fill:true, tension:0.3, pointRadius:3 }]
     },
     options:{ plugins:{legend:{display:false}}, scales:{ y:{ ticks:{ callback:v=>'$'+(v/1000).toFixed(0)+'k' }, grid:{color:'#efe8d5'} }, x:{ grid:{display:false}, ticks:{font:{size:10.5}} } } }
   });
@@ -973,7 +1027,7 @@ document.getElementById('saveSheetBtn').onclick = async ()=>{
     status.textContent = 'Connected ✓ — pulled ' + TXNS.length + ' transactions from the sheet';
     renderAll();
   } else {
-    status.textContent = 'Could not connect. Double check the Web App URL and token, or use "Push all local transactions to sheet" if the sheet is empty.';
+    status.textContent = lastSyncError || 'Could not connect. Double check the Web App URL and token.';
   }
 };
 document.getElementById('pushAllBtn').onclick = pushAllToSheet;
